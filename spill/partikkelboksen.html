@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Partikkelboksen · Naturfag</title>
+<meta name="description" content="Skru på temperaturen og koble det du ser, partiklene og formelen – kjemiens tre nivåer.">
+<meta name="theme-color" content="#17221f">
+<link rel="icon" href="../ikon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="nv.css">
+</head>
+<body>
+<div id="app">
+  <nav class="nf-top">
+    <a href="../tema/stoffer.html">← Stoffer</a>
+    <div class="nf-niva" role="group" aria-label="Vanskelighetsgrad"><span class="label">Nivå</span>
+      <button type="button" data-d="1">1</button><button type="button" data-d="2">2</button><button type="button" data-d="3">3</button></div>
+  </nav>
+  <div class="mg-root" id="mg-root"></div>
+  <div class="nf-slutt" id="nf-slutt" hidden></div>
+</div>
+<div class="toast-wrap" id="toasts" role="status" aria-live="polite"></div>
+<script src="nv.js"></script>
+<script>
+(function () {
+  'use strict';
+  var ID = "partikkelboksen";
+  var q = new URLSearchParams(location.search);
+  var d = Math.min(3, Math.max(1, Number(q.get('d')) || 1));
+  var def = NG.minigames.get(ID);
+  var root = document.getElementById('mg-root');
+  var slutt = document.getElementById('nf-slutt');
+  document.querySelectorAll('.nf-niva button').forEach(function (b) {
+    b.setAttribute('aria-pressed', String(Number(b.dataset.d) === d));
+    b.addEventListener('click', function () { d = Number(b.dataset.d); history.replaceState(null, '', '?d=' + d);
+      document.querySelectorAll('.nf-niva button').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); }); kjor(); });
+  });
+  function kjor() {
+    root.innerHTML = ''; slutt.hidden = true; slutt.innerHTML = '';
+    var api = NG.makeMinigameApi({ seed: Math.floor(Math.random() * 1e9), difficulty: d, onDone: function (r) {
+      var del = r.total ? r.correct + ' av ' + r.total + ' riktig' : Math.round(r.score * 100) + ' %';
+      slutt.appendChild(NG.el('div', { class: 'card row' }, [
+        NG.el('span', { class: 'grow', html: '<strong>Ferdig.</strong> ' + del + '.' }),
+        NG.el('button', { class: 'btn primary', type: 'button', text: 'Spill igjen', onclick: function () { kjor(); scrollTo(0, 0); } }),
+      ]));
+      slutt.hidden = false;
+    } });
+    def.start(root, api);
+  }
+  if (def) kjor(); else root.textContent = 'Fant ikke spillet.';
+})();
+</script>
+</body>
+</html>

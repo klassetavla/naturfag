@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Kjeden som ikke krymper</title>
+<style>
+  :root {
+    --ground: #f2f4f6;
+    --surface: #ffffff;
+    --surface-2: #e8ecef;
+    --ink: #131b22;
+    --ink-soft: #4a5865;
+    --ink-faint: #77848f;
+    --line: #d5dce1;
+    --accent: #1d5b7a;
+
+    --kin: #1f7ae0;
+    --pot: #6b4fc4;
+    --therm: #d1622a;
+
+    --ok: #2c7a52;
+    --ok-flate: #e6f2eb;
+    --no: #9c2f3f;
+    --no-flate: #f7e8ea;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, Palatino, "Noto Serif", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+      --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+      --line: #26313a; --accent: #6bb6d6;
+      --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+      --ok: #5cba85; --ok-flate: #14261d;
+      --no: #e3808f; --no-flate: #2a171b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+    --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+    --line: #26313a; --accent: #6bb6d6;
+    --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+    --ok: #5cba85; --ok-flate: #14261d;
+    --no: #e3808f; --no-flate: #2a171b;
+  }
+  :root[data-theme="light"] {
+    --ground: #f2f4f6; --surface: #ffffff; --surface-2: #e8ecef;
+    --ink: #131b22; --ink-soft: #4a5865; --ink-faint: #77848f;
+    --line: #d5dce1; --accent: #1d5b7a;
+    --kin: #1f7ae0; --pot: #6b4fc4; --therm: #d1622a;
+    --ok: #2c7a52; --ok-flate: #e6f2eb;
+    --no: #9c2f3f; --no-flate: #f7e8ea;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 18px 72px; display: flex; flex-direction: column; gap: 26px; }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .11em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 650; letter-spacing: -.02em; line-height: 1.15; text-wrap: balance; }
+  .lede { color: var(--ink-soft); max-width: 66ch; font-size: 16px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  canvas { display: block; width: 100%; height: auto; border-radius: 8px; cursor: pointer; }
+
+  .controls { padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; align-items: end; }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl > label, .ctrl > .lab { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); }
+  select {
+    font: inherit; font-size: 14px; padding: 8px 10px; width: 100%;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; cursor: pointer;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button {
+    font: inherit; font-size: 14px; font-weight: 550; padding: 9px 12px; cursor: pointer;
+    background: var(--accent); color: var(--surface); border: 1px solid var(--accent); border-radius: 5px;
+  }
+  button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  button:hover { filter: brightness(1.08); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  button[hidden] { display: none; }
+  .hint { font-size: 13px; color: var(--ink-faint); font-style: italic; }
+
+  .rammevalg { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .rammevalg .lab { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); }
+  .knapperad { display: flex; flex-wrap: wrap; gap: 8px; }
+  .knapperad button { background: transparent; color: var(--ink-soft); border-color: var(--line); font-weight: 500; font-size: 13px; padding: 7px 11px; }
+  .knapperad button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+  .regnskap { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  h2.avsnitt { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; font-family: var(--mono); font-weight: 500; color: var(--ink-faint); }
+  .totalt { display: flex; gap: 22px; flex-wrap: wrap; align-items: baseline; }
+  .totalt .blokk { display: flex; flex-direction: column; gap: 2px; padding-left: 11px; border-left: 3px solid var(--line); }
+  .totalt .blokk.n { border-left-color: var(--kin); }
+  .totalt .blokk.v { border-left-color: var(--therm); }
+  .totalt .blokk.s { border-left-color: var(--ink-faint); }
+  .totalt dt { font-size: 12px; color: var(--ink-soft); }
+  .totalt dd { font-family: var(--mono); font-size: 21px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .totalt .blokk.s dd { color: var(--ink-faint); }
+
+  .steg { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .steg .r { display: grid; grid-template-columns: minmax(0, 1fr) 74px minmax(0, 1.2fr) 82px; gap: 12px; padding: 11px 14px; align-items: baseline; border-top: 1px solid var(--line); }
+  .steg .r:first-child { border-top: 0; }
+  .steg .r.hode { background: var(--surface-2); font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+  .steg .r.utenfor { opacity: .38; }
+  @media (max-width: 660px) {
+    .steg .r { grid-template-columns: 1fr 74px; row-gap: 4px; }
+    .steg .r.hode { display: none; }
+    .steg .r > :nth-child(3) { grid-column: 1 / -1; font-size: 13px; }
+    .steg .r > :nth-child(4) { grid-column: 1 / -1; text-align: left; }
+  }
+  .steg .navn { font-size: 14.5px; color: var(--ink); }
+  .steg .eta { font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--kin); }
+  .steg .tap { font-size: 13.5px; color: var(--therm); }
+  .steg .igjen { font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-soft); }
+
+  .melding { padding: 16px 20px; font-size: 15px; color: var(--ink-soft); border-left: 3px solid var(--accent); }
+  .melding strong { color: var(--ink); }
+  .melding.omramme { border-left-color: var(--pot); }
+
+  .teach { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--accent); }
+  .teach h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .teach p { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach strong { color: var(--ink); font-weight: 600; }
+  .teach ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .teach li { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach li::marker { color: var(--accent); font-family: var(--mono); font-size: 13px; }
+  .kilde { font-size: 12.5px; color: var(--ink-faint); font-family: var(--mono); max-width: 74ch; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Naturfag · Energikvalitet</div>
+    <h1>Kjeden som ikke krymper</h1>
+    <p class="lede">Søyla er like høy fra venstre til høyre. Ikke ett joule er borte. Men den blå delen — energien som fortsatt kan gjøre noe — smalner for hvert ledd, og det oransje feltet vokser tilsvarende. <strong>Det er kvaliteten vi forbruker, ikke mengden.</strong></p>
+  </header>
+
+  <div class="panel"><canvas id="sank" width="1240" height="700" aria-label="Sankeydiagram der den totale høyden er konstant mens den nyttige andelen smalner"></canvas></div>
+
+  <div class="panel controls">
+    <div class="ctrl">
+      <label for="kjede">Energikjede</label>
+      <select id="kjede" aria-label="Velg energikjede"></select>
+    </div>
+    <div class="ctrl">
+      <span class="lab">Regenerativ bremsing</span>
+      <button id="regen" type="button" class="ghost" hidden>Slå på</button>
+      <span class="hint" id="regenhint" hidden>Motoren virker som generator og redder noe tilbake.</span>
+    </div>
+    <div class="ctrl">
+      <span class="lab">Nullstill</span>
+      <button id="reset" type="button" class="ghost">Kilden helt til venstre</button>
+    </div>
+  </div>
+
+  <div class="panel rammevalg">
+    <span class="lab">Hvor setter du kilden?</span>
+    <div class="knapperad" id="rammer"></div>
+    <span class="hint">Du kan også klikke rett på et ledd i figuren.</span>
+  </div>
+
+  <div class="panel melding omramme" id="rammemelding"></div>
+
+  <div class="panel regnskap">
+    <h2 class="avsnitt">Regnskapet fra kilden du valgte</h2>
+    <div class="totalt">
+      <div class="blokk n"><dt>Igjen som nyttig energi</dt><dd><span id="tNyttig">0</span> %</dd></div>
+      <div class="blokk v"><dt>Spredt som varme underveis</dt><dd><span id="tVarme">0</span> %</dd></div>
+      <div class="blokk s"><dt>Sum</dt><dd>100 %</dd></div>
+    </div>
+
+    <div class="steg" id="stegtabell"></div>
+    <p class="melding" id="slutt"></p>
+  </div>
+
+  <div class="panel teach">
+    <h2>Bruk modellen slik</h2>
+    <ol>
+      <li>Legg en finger på toppen av søyla og en på bunnen, og dra dem mot høyre. <strong>Avstanden endrer seg ikke.</strong> Det er energibevaring, og det er den delen elevene som regel tror på.</li>
+      <li>Følg så bare den blå kanten. Den faller trinnvis nedover og kommer aldri opp igjen. Det er termofysikkens andre lov, og det er den delen som er vanskelig å tro på — for ingenting så langt har blitt <em>borte</em>.</li>
+      <li>Velg <strong>Bensinbilen</strong> og se hvor det store fallet ligger: i det første leddet. Bytt til <strong>Elbilen</strong>. Samme oppgave, samme bil på veien — men uten omveien om varme i starten er <strong>81 %</strong> igjen når energien når hjulene, mot <strong>26 %</strong> i bensinbilen.</li>
+      <li>Slå på <strong>regenerativ bremsing</strong> på elbilen. Den blå kanten stiger ikke, men den faller mindre på siste trinn. Ingen energi hentes tilbake fra ingenting; noe blir bare fanget før det rekker å spre seg.</li>
+      <li><strong>Klikk på et ledd</strong> for å sette kilden der. Alt til venstre blekner. Regnskapet begynner på nytt på 100 %, og virkningsgraden blir plutselig mye bedre — uten at én eneste ting har endret seg fysisk. <strong>Kilde og mottaker er roller vi velger.</strong> Det er derfor det egentlig er et energinett og ikke en kjede.</li>
+    </ol>
+    <p><strong>Til klasserommet:</strong> tegn søyla på tavla og be elevene tegne hva som skjer med den langs kjeden. De aller fleste tegner den smalere og smalere. Da har du misoppfatningen synlig på tavla, skrevet av dem selv — og du kan bygge hele energibevaringen på den tegningen i stedet for på en påstand.</p>
+    <p class="kilde">Virkningsgradene er typiske tabellverdier, avrundet. «Nyttig» er en vurdering og ikke en målt størrelse: varme er nyttig i en varmeovn og tap i en motor. Spredt varme har heller ikke kvalitet null — varme ved høy temperatur kan fortsatt drive noe. Figuren viser retningen, ikke et eksergiregnskap.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KJEDER = [
+    {
+      id: "bensin", navn: "Bensinbilen", kilde: "Kjemisk energi i bensinen",
+      slutt: "Bilen står stille igjen, og alt sammen er blitt varme i motoren, i lufta, i asfalten og i bremseskivene. Ikke ett joule er borte — men ingenting av det kan brukes til å kjøre en meter til.",
+      ledd: [
+        { navn: "Forbrenning i motoren", eta: 0.30, tap: "varme i eksos og kjølevann" },
+        { navn: "Girkasse og drivaksel",  eta: 0.85, tap: "friksjon i lager og tannhjul" },
+        { navn: "Bilen i fart",           eta: 0.75, tap: "luftmotstand og rullemotstand" },
+        { navn: "Bremsing til stillstand", eta: 0.02, tap: "varme i bremseskivene" }
+      ]
+    },
+    {
+      id: "elbil", navn: "Elbilen", kilde: "Elektrisk energi fra nettet", regen: true,
+      slutt: "Elbilen går den samme veien, men slipper det store varmesteget i starten. Det er hele forklaringen på forskjellen — ikke at strøm er «renere energi», men at den ikke må gjennom en forbrenning først.",
+      ledd: [
+        { navn: "Lading av batteriet",     eta: 0.90, tap: "varme i lader og celler" },
+        { navn: "Elmotoren",               eta: 0.90, tap: "varme i viklingene" },
+        { navn: "Bilen i fart",            eta: 0.75, tap: "luftmotstand og rullemotstand" },
+        { navn: "Bremsing til stillstand", eta: 0.02, etaRegen: 0.35, tap: "varme i bremseskivene", tapRegen: "varme i bremsene — resten reddes til batteriet" }
+      ]
+    },
+    {
+      id: "vann", navn: "Vannkraft til lys", kilde: "Stillingsenergi i magasinet",
+      slutt: "Lyset i taket ender også som varme: veggene, møblene og huden din tar det opp. Kjeden stopper ikke ved pæra — den stopper når alt er spredt så jevnt at ingenting mer kan skje.",
+      ledd: [
+        { navn: "Rørgata ned",       eta: 0.95, tap: "friksjon mot rørveggen" },
+        { navn: "Turbinen",          eta: 0.92, tap: "virvler og varme i vannet" },
+        { navn: "Generatoren",       eta: 0.98, tap: "varme i viklingene" },
+        { navn: "Nettet fram til deg", eta: 0.93, tap: "varme i ledningene" },
+        { navn: "LED-pæra",          eta: 0.42, tap: "varme i pæra" }
+      ]
+    },
+    {
+      id: "sykkel", navn: "Sykkelturen", kilde: "Kjemisk energi i maten",
+      slutt: "Følger du kjeden bakover fra maten, kommer du til planta, og fra planta til sola. Nesten alle energikjeder ender der hvis du går langt nok bakover.",
+      ledd: [
+        { navn: "Fordøyelsen",        eta: 0.85, tap: "det du ikke tar opp" },
+        { navn: "Celleånding",        eta: 0.40, tap: "kroppsvarme" },
+        { navn: "Musklene",           eta: 0.25, tap: "kroppsvarme — derfor blir du svett" },
+        { navn: "Kjede og lager",     eta: 0.95, tap: "friksjon" },
+        { navn: "Sykkelen i fart",    eta: 0.15, tap: "luftmotstand og rullemotstand" }
+      ]
+    }
+  ];
+
+  var cv = document.getElementById("sank");
+  var ctx = cv.getContext("2d");
+  var W = cv.width, H = cv.height;
+
+  var el = {};
+  ["kjede","regen","regenhint","reset","rammer","rammemelding","tNyttig","tVarme","stegtabell","slutt"]
+    .forEach(function (id) { el[id] = document.getElementById(id); });
+
+  var st = { k: 0, ramme: 0, regen: false };
+
+  KJEDER.forEach(function (k, i) {
+    var o = document.createElement("option");
+    o.value = i; o.textContent = k.navn;
+    el.kjede.appendChild(o);
+  });
+
+  function kj() { return KJEDER[st.k]; }
+  function etaFor(l) { return (st.regen && l.etaRegen !== undefined) ? l.etaRegen : l.eta; }
+  function tapFor(l) { return (st.regen && l.tapRegen !== undefined) ? l.tapRegen : l.tap; }
+
+  // Andelen som fortsatt kan gjøre arbeid, ved hvert knutepunkt. Regnet fra det
+  // leddet brukeren har satt som kilde — det er hele poenget med rammevalget.
+  function andeler() {
+    var k = kj(), a = [], f = 1;
+    for (var i = 0; i <= k.ledd.length; i++) {
+      if (i < st.ramme) { a.push(null); continue; }     // utenfor ramma
+      a.push(f);
+      if (i < k.ledd.length) f *= etaFor(k.ledd[i]);
+    }
+    return a;
+  }
+
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  /* ---- geometri ----------------------------------------------------------- */
+
+  var M = { v: 74, h: 74, topp: 132, bunn: 214 };
+
+  function noderX() {
+    var k = kj(), n = k.ledd.length + 1, xs = [];
+    var bredde = W - M.v - M.h;
+    for (var i = 0; i < n; i++) xs.push(M.v + bredde * i / (n - 1));
+    return xs;
+  }
+
+  function bandTopp() { return M.topp; }
+  function bandBunn() { return H - M.bunn; }
+  function bandH() { return bandBunn() - bandTopp(); }
+
+  /* ---- tegning ------------------------------------------------------------ */
+
+  function bryt(tekst, maks) {
+    var ord = tekst.split(" "), linjer = [], n = "";
+    ord.forEach(function (o) {
+      var forsok = n ? n + " " + o : o;
+      if (forsok.length > maks && n) { linjer.push(n); n = o; } else { n = forsok; }
+    });
+    if (n) linjer.push(n);
+    return linjer;
+  }
+
+  function tegn() {
+    var k = kj(), xs = noderX(), a = andeler();
+    var yT = bandTopp(), yB = bandBunn(), hh = bandH();
+
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.font = "500 22px " + css("--mono");
+    ctx.fillStyle = css("--ink-faint");
+    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("TOTALEN ER KONSTANT", M.v, 44);
+    ctx.textAlign = "right";
+    ctx.fillStyle = css("--therm");
+    ctx.fillText("SPREDT VARME VOKSER", W - M.h, 44);
+
+    // høydemål som viser at søyla er like høy hele veien
+    ctx.save();
+    ctx.strokeStyle = css("--ink-faint"); ctx.lineWidth = 2; ctx.globalAlpha = 0.55;
+    ctx.setLineDash([6, 8]);
+    ctx.beginPath(); ctx.moveTo(M.v - 26, yT); ctx.lineTo(W - M.h + 26, yT); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(M.v - 26, yB); ctx.lineTo(W - M.h + 26, yB); ctx.stroke();
+    ctx.restore();
+
+    for (var i = 0; i < k.ledd.length; i++) {
+      var f0 = a[i], f1 = a[i + 1];
+      var x0 = xs[i], x1 = xs[i + 1];
+      var utenfor = (f0 === null);
+
+      ctx.save();
+      ctx.globalAlpha = utenfor ? 0.13 : 1;
+
+      var g0 = utenfor ? 1 : f0, g1 = utenfor ? 1 : f1;
+      var y0 = yT + g0 * hh, y1 = yT + g1 * hh;
+      var mx = (x0 + x1) / 2;
+
+      // varmefeltet nederst
+      ctx.fillStyle = css("--therm");
+      ctx.globalAlpha *= 0.88;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.bezierCurveTo(mx, y0, mx, y1, x1, y1);
+      ctx.lineTo(x1, yB); ctx.lineTo(x0, yB);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = utenfor ? 0.13 : 1;
+      // den nyttige delen øverst
+      ctx.fillStyle = css("--kin");
+      ctx.beginPath();
+      ctx.moveTo(x0, yT); ctx.lineTo(x1, yT);
+      ctx.lineTo(x1, y1);
+      ctx.bezierCurveTo(mx, y1, mx, y0, x0, y0);
+      ctx.closePath(); ctx.fill();
+
+      // skillekanten
+      ctx.strokeStyle = css("--surface"); ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.bezierCurveTo(mx, y0, mx, y1, x1, y1);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // ytre ramme
+    ctx.save();
+    ctx.strokeStyle = css("--line"); ctx.lineWidth = 2;
+    ctx.strokeRect(xs[0], yT, xs[xs.length - 1] - xs[0], hh);
+    ctx.restore();
+
+    // knutepunkt
+    for (var n = 0; n < xs.length; n++) {
+      var x = xs[n], utenf = (a[n] === null);
+      var erKilde = (n === st.ramme);
+
+      ctx.save();
+      ctx.globalAlpha = utenf ? 0.3 : 1;
+      ctx.strokeStyle = css(erKilde ? "--pot" : "--ink-faint");
+      ctx.lineWidth = erKilde ? 5 : 2;
+      ctx.setLineDash(erKilde ? [] : [5, 8]);
+      ctx.beginPath(); ctx.moveTo(x, yT - 20); ctx.lineTo(x, yB + 20); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // prosenten som fortsatt kan gjøre arbeid
+      if (!utenf) {
+        var pros = Math.round(a[n] * 1000) / 10;
+        ctx.fillStyle = css("--kin");
+        ctx.font = "600 26px " + css("--mono");
+        ctx.textAlign = n === 0 ? "left" : (n === xs.length - 1 ? "right" : "center");
+        ctx.textBaseline = "bottom";
+        ctx.fillText((pros < 10 ? pros.toFixed(1).replace(".", ",") : Math.round(pros)) + " %", x, yT - 28);
+      }
+      ctx.restore();
+
+      // navnet på leddet, under figuren
+      var etikett = n === 0 ? k.kilde : k.ledd[n - 1].navn;
+      var bredde = (W - M.v - M.h) / (xs.length - 1);
+      var tx = n === 0 ? xs[0] : (xs[n - 1] + xs[n]) / 2;
+      if (n === 0) tx = xs[0] + 6;
+
+      ctx.save();
+      ctx.globalAlpha = (a[n] === null && n !== st.ramme) ? 0.32 : 1;
+      ctx.fillStyle = erKilde ? css("--pot") : css("--ink-soft");
+      ctx.font = (erKilde ? "600 " : "") + "19px " + css("--sans");
+      ctx.textAlign = n === 0 ? "left" : "center";
+      ctx.textBaseline = "top";
+      var linjer = bryt(etikett, n === 0 ? 22 : 18);
+      for (var L = 0; L < linjer.length; L++) ctx.fillText(linjer[L], tx, yB + 34 + L * 25);
+      if (erKilde) {
+        ctx.fillStyle = css("--pot");
+        ctx.font = "500 15px " + css("--mono");
+        ctx.fillText("KILDE", tx, yB + 34 + linjer.length * 25 + 4);
+      }
+      ctx.restore();
+    }
+
+    // feltnavn inne i figuren
+    var sisteF = a[a.length - 1];
+    ctx.save();
+    ctx.font = "600 21px " + css("--sans");
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff"; ctx.globalAlpha = 0.92;
+    var yMidtBlaa = yT + (a[st.ramme] * hh) / 2;
+    ctx.fillText("kan fortsatt gjøre arbeid", xs[st.ramme] + 16, yMidtBlaa);
+    if (sisteF < 0.82) {
+      ctx.textAlign = "right";
+      ctx.fillText("spredt varme", W - M.h - 16, yT + sisteF * hh + (hh - sisteF * hh) / 2);
+    }
+    ctx.restore();
+  }
+
+  /* ---- tekstpanelene ------------------------------------------------------ */
+
+  function nb(x, d) { return x.toLocaleString("nb-NO", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+  function skriv() {
+    var k = kj(), a = andeler();
+    var sluttAndel = a[a.length - 1];
+
+    el.tNyttig.textContent = nb(sluttAndel * 100, sluttAndel * 100 < 10 ? 1 : 0);
+    el.tVarme.textContent = nb((1 - sluttAndel) * 100, (1 - sluttAndel) * 100 < 10 ? 1 : 0);
+
+    var rader = ['<div class="r hode"><span>Ledd</span><span>Virkningsgrad</span><span>Det som spres</span><span>Igjen</span></div>'];
+    for (var i = 0; i < k.ledd.length; i++) {
+      var l = k.ledd[i], utenfor = (a[i] === null);
+      var e = etaFor(l);
+      rader.push(
+        '<div class="r' + (utenfor ? " utenfor" : "") + '">' +
+        '<span class="navn">' + l.navn + '</span>' +
+        '<span class="eta">' + Math.round(e * 100) + " %</span>" +
+        '<span class="tap">' + tapFor(l) + "</span>" +
+        '<span class="igjen">' + (utenfor ? "—" : nb(a[i + 1] * 100, a[i + 1] * 100 < 10 ? 1 : 0) + " %") + "</span>" +
+        "</div>"
+      );
+    }
+    el.stegtabell.innerHTML = rader.join("");
+    el.slutt.innerHTML = "<strong>Der stopper det:</strong> " + k.slutt;
+
+    // rammemeldingen
+    if (st.ramme === 0) {
+      el.rammemelding.innerHTML = "Kilden står helt til venstre, der kjeden begynner. <strong>Prøv å flytte den.</strong> "
+        + "Ingenting fysisk endrer seg — men tallene gjør det, og det er verdt å legge merke til hvorfor.";
+    } else {
+      var navn = st.ramme === 0 ? k.kilde : k.ledd[st.ramme - 1].navn;
+      var fra0 = 1;
+      for (var q = 0; q < st.ramme; q++) fra0 *= etaFor(k.ledd[q]);
+      el.rammemelding.innerHTML = "Nå regner du <strong>" + navn.toLowerCase() + "</strong> som kilde. "
+        + "Alt til venstre er utenfor ramma di, og regnskapet begynner på 100 % her. "
+        + "Sett fra kjedens virkelige start er det bare <strong>" + nb(fra0 * 100, fra0 * 100 < 10 ? 1 : 0)
+        + " %</strong> igjen på dette punktet — men innenfor din ramme er det alt som finnes. "
+        + "<strong>Kilde og mottaker er roller du velger</strong>, ikke egenskaper ved energien.";
+    }
+
+    // rammeknappene
+    var knapper = [];
+    for (var n = 0; n < k.ledd.length; n++) {
+      var etikett = n === 0 ? k.kilde : k.ledd[n - 1].navn;
+      knapper.push('<button type="button" data-n="' + n + '" aria-pressed="' + (n === st.ramme) + '">' + etikett + "</button>");
+    }
+    el.rammer.innerHTML = knapper.join("");
+    Array.prototype.forEach.call(el.rammer.querySelectorAll("button"), function (b) {
+      b.addEventListener("click", function () { st.ramme = parseInt(b.dataset.n, 10); oppdater(); });
+    });
+
+    var harRegen = !!k.regen;
+    el.regen.hidden = !harRegen;
+    el.regenhint.hidden = !harRegen;
+    if (harRegen) {
+      el.regen.textContent = st.regen ? "Slå av" : "Slå på";
+      el.regen.className = st.regen ? "" : "ghost";
+      el.regenhint.textContent = st.regen
+        ? "Motoren virker som generator. Litt av bevegelsen fanges før den rekker å bli varme."
+        : "Uten den blir all bevegelsesenergien til varme i bremseskivene.";
+    }
+  }
+
+  function oppdater() { skriv(); tegn(); }
+
+  /* ---- hendelser ---------------------------------------------------------- */
+
+  el.kjede.addEventListener("change", function () {
+    st.k = parseInt(el.kjede.value, 10);
+    st.ramme = 0;
+    if (!kj().regen) st.regen = false;
+    oppdater();
+  });
+
+  el.regen.addEventListener("click", function () { st.regen = !st.regen; oppdater(); });
+  el.reset.addEventListener("click", function () { st.ramme = 0; oppdater(); });
+
+  cv.addEventListener("click", function (ev) {
+    var rekt = cv.getBoundingClientRect();
+    var x = (ev.clientX - rekt.left) / rekt.width * W;
+    var xs = noderX(), naermest = 0, best = Infinity;
+    for (var i = 0; i < xs.length - 1; i++) {          // siste knutepunkt kan ikke være kilde
+      var d = Math.abs(xs[i] - x);
+      if (d < best) { best = d; naermest = i; }
+    }
+    st.ramme = naermest;
+    oppdater();
+  });
+
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", tegn); else if (mq.addListener) mq.addListener(tegn);
+  }
+
+  oppdater();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Watt ganger time</title>
+<style>
+  :root {
+    --ground: #f2f4f6;
+    --surface: #ffffff;
+    --surface-2: #e8ecef;
+    --ink: #131b22;
+    --ink-soft: #4a5865;
+    --ink-faint: #77848f;
+    --line: #d5dce1;
+    --accent: #1d5b7a;
+
+    --kin: #1f7ae0;
+    --pot: #6b4fc4;
+    --therm: #d1622a;
+
+    --ok: #2c7a52;
+    --ok-flate: #e6f2eb;
+    --no: #9c2f3f;
+    --no-flate: #f7e8ea;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, Palatino, "Noto Serif", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+      --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+      --line: #26313a; --accent: #6bb6d6;
+      --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+      --ok: #5cba85; --ok-flate: #14261d;
+      --no: #e3808f; --no-flate: #2a171b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+    --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+    --line: #26313a; --accent: #6bb6d6;
+    --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+    --ok: #5cba85; --ok-flate: #14261d;
+    --no: #e3808f; --no-flate: #2a171b;
+  }
+  :root[data-theme="light"] {
+    --ground: #f2f4f6; --surface: #ffffff; --surface-2: #e8ecef;
+    --ink: #131b22; --ink-soft: #4a5865; --ink-faint: #77848f;
+    --line: #d5dce1; --accent: #1d5b7a;
+    --kin: #1f7ae0; --pot: #6b4fc4; --therm: #d1622a;
+    --ok: #2c7a52; --ok-flate: #e6f2eb;
+    --no: #9c2f3f; --no-flate: #f7e8ea;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 18px 72px; display: flex; flex-direction: column; gap: 32px; }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .11em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 650; letter-spacing: -.02em; line-height: 1.15; text-wrap: balance; }
+  .lede { color: var(--ink-soft); max-width: 66ch; font-size: 16px; }
+
+  section { display: flex; flex-direction: column; gap: 14px; }
+  .snitt { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .snitt .nr { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: .1em; }
+  .snitt h2 { font-size: 20px; font-weight: 620; letter-spacing: -.01em; }
+  .snitt p { color: var(--ink-soft); font-size: 15px; max-width: 68ch; flex-basis: 100%; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  canvas { display: block; width: 100%; height: auto; border-radius: 8px; }
+
+  .controls { padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; align-items: end; }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl > label, .ctrl > .lab { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ctrl b { font-family: var(--mono); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; text-transform: none; letter-spacing: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  select {
+    font: inherit; font-size: 14px; padding: 8px 10px; width: 100%;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; cursor: pointer;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .utfall { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .stort { font-family: var(--mono); font-size: clamp(26px, 6vw, 40px); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .stort small { font-size: 0.5em; color: var(--ink-faint); }
+  .regnestrek { font-family: var(--mono); font-size: 15px; color: var(--ink-soft); overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+  .regnestrek em { font-style: normal; color: var(--kin); }
+  .dom { font-size: 15px; color: var(--ink-soft); max-width: 70ch; }
+  .dom strong { color: var(--ink); }
+  .flagg { font-size: 14px; padding: 10px 14px; border-radius: 5px; border-left: 3px solid var(--accent); background: var(--surface-2); color: var(--ink-soft); }
+  .flagg.null { border-left-color: var(--no); }
+  .flagg strong { color: var(--ink); }
+
+  .par { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 680px) { .par { grid-template-columns: 1fr; } }
+  .app { padding: 16px; display: flex; flex-direction: column; gap: 12px; border-top: 4px solid var(--kin); }
+  .app.b { border-top-color: var(--pot); }
+  .app .navn { font-family: var(--mono); font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-faint); }
+  .app .sum { font-family: var(--mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+  .app .sum small { font-size: 13px; color: var(--ink-faint); }
+  .app .bi { font-family: var(--mono); font-size: 13px; color: var(--ink-faint); }
+
+  .likhet { padding: 16px 20px; border-left: 3px solid var(--line); font-size: 15px; color: var(--ink-soft); }
+  .likhet.treff { border-left-color: var(--ok); background: var(--ok-flate); color: var(--ink); }
+  .likhet strong { color: var(--ink); }
+
+  .enhet { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; border-left: 3px solid var(--accent); }
+  .enhet h3 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .enhet .kjede { font-family: var(--mono); font-size: clamp(13px, 2.6vw, 17px); overflow-x: auto; white-space: nowrap; padding-bottom: 6px; color: var(--ink); }
+  .enhet .kjede u { text-decoration: none; color: var(--therm); font-weight: 600; }
+  .enhet p { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .enhet strong { color: var(--ink); }
+
+  .vg { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .vgbar { display: flex; height: 54px; border-radius: 5px; overflow: hidden; border: 1px solid var(--line); background: var(--surface-2); }
+  .vgbar div { display: flex; align-items: center; justify-content: center; overflow: hidden; transition: width .2s ease; }
+  .vgbar span { font-family: var(--mono); font-size: 12px; color: #fff; white-space: nowrap; padding: 0 8px; }
+  #vgNyttig { background: var(--ok); }
+  #vgTap { background: var(--therm); }
+  .brok { display: flex; align-items: center; gap: 14px; font-family: var(--mono); flex-wrap: wrap; }
+  .brok .eta { font-size: 22px; color: var(--ink); }
+  .brok .tall { display: inline-flex; flex-direction: column; align-items: center; }
+  .brok .tall .over { font-size: 16px; padding: 0 10px 3px; color: var(--ok); }
+  .brok .tall .under { font-size: 16px; padding: 3px 10px 0; border-top: 2px solid var(--ink-faint); color: var(--ink); }
+  .brok .res { font-size: 22px; font-variant-numeric: tabular-nums; }
+
+  .teach { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--accent); }
+  .teach h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .teach p { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach strong { color: var(--ink); font-weight: 600; }
+  .teach ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .teach li { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach li::marker { color: var(--accent); font-family: var(--mono); font-size: 13px; }
+  .kilde { font-size: 12.5px; color: var(--ink-faint); font-family: var(--mono); max-width: 74ch; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Naturfag · Arbeid, effekt og virkningsgrad</div>
+    <h1>Watt ganger time</h1>
+    <p class="lede">Tre størrelser som stadig blandes: arbeid, effekt og energi. De henger sammen på én måte, og hele forvirringen om kilowattimen ligger i ett lite ord. Modellen viser sammenhengen som areal — når du ser den som flate, er den ikke til å ta feil av.</p>
+  </header>
+
+  <section>
+    <div class="snitt">
+      <span class="nr">A</span>
+      <h2>Arbeid er kraft ganger strekning</h2>
+      <p>Kraften alene gjør ingenting. Det er kraften <em>og</em> at noe flytter seg som overfører energi. Dra i skyverne og se når arbeidet blir null.</p>
+    </div>
+
+    <div class="panel"><canvas id="arb" width="1200" height="440" aria-label="Kasse som dras over et gulv med en kraft i vinkel"></canvas></div>
+
+    <div class="panel controls">
+      <div class="ctrl">
+        <label for="F">Kraft <b><span id="Fv">200</span> N</b></label>
+        <input type="range" id="F" min="0" max="500" step="10" value="200">
+      </div>
+      <div class="ctrl">
+        <label for="s">Strekning <b><span id="sv">4,0</span> m</b></label>
+        <input type="range" id="s" min="0" max="10" step="0.5" value="4">
+      </div>
+      <div class="ctrl">
+        <label for="vk">Vinkel på kraften <b><span id="vkv">0</span>°</b></label>
+        <input type="range" id="vk" min="0" max="90" step="5" value="0">
+      </div>
+    </div>
+
+    <div class="panel utfall">
+      <div class="stort"><span id="Wut">800</span> <small>J</small></div>
+      <div class="regnestrek" id="Wregne"></div>
+      <div class="flagg" id="Wflagg"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="snitt">
+      <span class="nr">B</span>
+      <h2>Energi er effekt ganger tid</h2>
+      <p>Høyden på rektangelet er effekten. Bredden er tida. <strong>Energien er flata.</strong> To apparater kan bruke like mye energi selv om det ene er 250 ganger sterkere enn det andre — prøv å finne to som gir samme flate.</p>
+    </div>
+
+    <div class="panel"><canvas id="eff" width="1200" height="600" aria-label="To rektangler der høyden er effekt og bredden er tid"></canvas></div>
+
+    <div class="par">
+      <div class="panel app">
+        <div class="ctrl">
+          <span class="navn">Apparat A</span>
+          <select id="appA" aria-label="Velg apparat A"></select>
+        </div>
+        <div class="ctrl">
+          <label for="tA">Tid <b><span id="tAv"></span></b></label>
+          <input type="range" id="tA" min="0" max="100" step="1" value="24">
+        </div>
+        <div class="sum"><span id="EA"></span> <small>kWh</small></div>
+        <div class="bi" id="EAbi"></div>
+      </div>
+      <div class="panel app b">
+        <div class="ctrl">
+          <span class="navn">Apparat B</span>
+          <select id="appB" aria-label="Velg apparat B"></select>
+        </div>
+        <div class="ctrl">
+          <label for="tB">Tid <b><span id="tBv"></span></b></label>
+          <input type="range" id="tB" min="0" max="100" step="1" value="86">
+        </div>
+        <div class="sum"><span id="EB"></span> <small>kWh</small></div>
+        <div class="bi" id="EBbi"></div>
+      </div>
+    </div>
+
+    <div class="panel likhet" id="likhet"></div>
+
+    <div class="panel enhet">
+      <h3>Derfor er kilowattimen en energienhet</h3>
+      <div class="kjede">1 kW <u>·</u> 1 t &nbsp;=&nbsp; 1000 J/s <u>·</u> 3600 s &nbsp;=&nbsp; 3 600 000 J &nbsp;=&nbsp; 3,6 MJ</div>
+      <p>Les enheten bokstavelig: det står watt <strong>ganger</strong> time, ikke watt <strong>per</strong> time. Sekundene i «J/s» stryker mot sekundene i «3600 s», og igjen står ren joule. En størrelse med «per time» i seg ville vært en <em>rate</em> — og det er nettopp det watt allerede er.</p>
+      <p class="kilde">Strømregninga oppgir energi i kWh og ikke i MJ av praktiske grunner: tallene blir håndterlige. Fysikkens SI-enhet for energi er og blir joule.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="snitt">
+      <span class="nr">C</span>
+      <h2>Virkningsgrad er en brøk</h2>
+      <p>Nyttig energi delt på tilført energi. Skriv den som brøk én gang, så slipper du å famle etter den.</p>
+    </div>
+
+    <div class="panel controls">
+      <div class="ctrl" style="grid-column: 1 / -1">
+        <label for="vgVelg">Innretning</label>
+        <select id="vgVelg" aria-label="Velg innretning"></select>
+      </div>
+    </div>
+
+    <div class="panel vg">
+      <div class="vgbar" role="img" aria-label="Stolpe som viser hvor mye av tilført energi som blir nyttig og hvor mye som går til varme">
+        <div id="vgNyttig"><span id="vgNyttigLbl"></span></div>
+        <div id="vgTap"><span id="vgTapLbl"></span></div>
+      </div>
+      <div class="brok">
+        <span class="eta">η =</span>
+        <span class="tall">
+          <span class="over" id="brokOver">nyttig energi</span>
+          <span class="under" id="brokUnder">tilført energi</span>
+        </span>
+        <span class="eta">=</span>
+        <span class="res"><span id="vgTall"></span> = <span id="vgProsent"></span> %</span>
+      </div>
+      <p class="dom" id="vgDom"></p>
+      <div class="flagg"><strong>Hvorfor aldri over 1:</strong> den nyttige energien er en <em>del av</em> den tilførte. En del kan ikke være større enn helheten. En virkningsgrad over 1 ville vært en evighetsmaskin — og det er nettopp det energibevaringen utelukker.</div>
+    </div>
+  </section>
+
+  <div class="panel teach">
+    <h2>Bruk modellen slik</h2>
+    <ol>
+      <li>I <strong>A</strong>: dra strekningen til 0 og la kraften stå på 500 N. Arbeidet blir null. Du kan holde en tung sekk i strak arm til armen skjelver, og i fysikkens forstand har du ikke gjort et eneste joule arbeid.</li>
+      <li>Dra så <strong>vinkelen</strong> til 90°. Kassa flytter seg fire meter, kraften står på — og arbeidet er fortsatt null. Bare det kraften har <em>i bevegelsesretningen</em> teller. Det er derfor definisjonen har med «i kraftens retning».</li>
+      <li>I <strong>B</strong>: sett A til vannkoker og B til LED-pære. Prøv å få flatene like store. Du trenger noen minutter mot mange døgn — og det er samme energi.</li>
+      <li>Legg merke til at <strong>hele figuren er sammenhengen</strong>: <span style="font-family:var(--mono)">E = P · t</span> lest den ene veien, <span style="font-family:var(--mono)">P = E / t</span> lest den andre. Effekt er energi per sekund, altså hvor <em>fort</em> energien overføres — ikke hvor mye det er av den.</li>
+      <li>I <strong>C</strong>: gå fra glødepære til LED. Den grønne delen vokser og den oransje krymper, men <strong>stolpen har alltid samme lengde</strong>. Det er energibevaring; virkningsgraden er bare hvor stor del av den som ble til det du var ute etter.</li>
+    </ol>
+    <p><strong>Til klasserommet:</strong> la elevene gjette hvor lenge en LED-pære må stå på for å bruke like mye som en vannkoker på ti minutter, før de får se rektanglene. Gjettingen ligger som regel på timer. Svaret er dager. Den bommen er verdt mer enn en riktig formel.</p>
+    <p class="kilde">Effekttallene er typiske merkeeffekter for husholdningsapparater, avrundet. Virkningsgradene er vanlige tabellverdier og varierer med modell og driftsforhold.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var el = {};
+  ["arb","eff","F","s","vk","Fv","sv","vkv","Wut","Wregne","Wflagg",
+   "appA","appB","tA","tB","tAv","tBv","EA","EB","EAbi","EBbi","likhet",
+   "vgVelg","vgNyttig","vgTap","vgNyttigLbl","vgTapLbl","brokOver","brokUnder","vgTall","vgProsent","vgDom"
+  ].forEach(function (id) { el[id] = document.getElementById(id); });
+
+  var ca = el.arb.getContext("2d");
+  var ce = el.eff.getContext("2d");
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function nb(x, d) { return x.toLocaleString("nb-NO", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+
+  /* ===== A — arbeid ======================================================== */
+
+  function F() { return parseFloat(el.F.value); }
+  function s() { return parseFloat(el.s.value); }
+  function vk() { return parseFloat(el.vk.value); }
+
+  function tegnArbeid() {
+    var W = el.arb.width, H = el.arb.height;
+    var gulv = H - 96, x0 = 190, skala = 74;          // 74 px per meter
+    var F0 = F(), s0 = s(), v0 = vk() * Math.PI / 180;
+    var x1 = x0 + s0 * skala;
+    var boks = 92;
+
+    ca.clearRect(0, 0, W, H);
+
+    // gulv
+    ca.strokeStyle = css("--line"); ca.lineWidth = 3;
+    ca.beginPath(); ca.moveTo(60, gulv); ca.lineTo(W - 60, gulv); ca.stroke();
+    ca.fillStyle = css("--ink"); ca.globalAlpha = 0.05;
+    ca.fillRect(60, gulv, W - 120, 26);
+    ca.globalAlpha = 1;
+
+    // startskygge
+    ca.strokeStyle = css("--line"); ca.lineWidth = 2; ca.setLineDash([7, 8]);
+    ca.strokeRect(x0 - boks / 2, gulv - boks, boks, boks);
+    ca.setLineDash([]);
+
+    // strekningsmål
+    if (s0 > 0.01) {
+      var my = gulv + 52;
+      ca.strokeStyle = css("--ink-faint"); ca.lineWidth = 2;
+      ca.beginPath(); ca.moveTo(x0, my); ca.lineTo(x1, my); ca.stroke();
+      [[x0, 1], [x1, -1]].forEach(function (p) {
+        ca.beginPath();
+        ca.moveTo(p[0], my); ca.lineTo(p[0] + p[1] * 13, my - 8); ca.lineTo(p[0] + p[1] * 13, my + 8);
+        ca.closePath(); ca.fillStyle = css("--ink-faint"); ca.fill();
+      });
+      ca.fillStyle = css("--ink-soft"); ca.font = "500 24px " + css("--mono");
+      ca.textAlign = "center"; ca.textBaseline = "top";
+      ca.fillText("s = " + nb(s0, 1) + " m", (x0 + x1) / 2, my + 12);
+    }
+
+    // kassa
+    ca.fillStyle = css("--surface-2"); ca.strokeStyle = css("--ink-faint"); ca.lineWidth = 3;
+    ca.fillRect(x1 - boks / 2, gulv - boks, boks, boks);
+    ca.strokeRect(x1 - boks / 2, gulv - boks, boks, boks);
+
+    var ay = gulv - boks / 2;
+    var pilL = 40 + F0 * 0.30;
+
+    // kraften
+    if (F0 > 0) {
+      var ex = x1 + boks / 2 + Math.cos(-v0) * pilL;
+      var ey = ay + Math.sin(-v0) * pilL;
+      ca.save();
+      ca.strokeStyle = css("--therm"); ca.fillStyle = css("--therm"); ca.lineWidth = 6;
+      ca.beginPath(); ca.moveTo(x1 + boks / 2, ay); ca.lineTo(ex, ey); ca.stroke();
+      var vv = Math.atan2(ey - ay, ex - (x1 + boks / 2));
+      ca.beginPath();
+      ca.moveTo(ex, ey);
+      ca.lineTo(ex - 22 * Math.cos(vv - 0.36), ey - 22 * Math.sin(vv - 0.36));
+      ca.lineTo(ex - 22 * Math.cos(vv + 0.36), ey - 22 * Math.sin(vv + 0.36));
+      ca.closePath(); ca.fill();
+      ca.font = "500 24px " + css("--mono"); ca.textAlign = "left"; ca.textBaseline = "middle";
+      ca.fillText("F = " + F0 + " N", ex + 18, ey - 4);
+      ca.restore();
+
+      // komponenten langs bevegelsen
+      var komp = Math.cos(v0);
+      if (komp > 0.001 && vk() > 0) {
+        var kx = x1 + boks / 2 + komp * pilL;
+        ca.save();
+        ca.strokeStyle = css("--kin"); ca.fillStyle = css("--kin"); ca.lineWidth = 6;
+        ca.beginPath(); ca.moveTo(x1 + boks / 2, ay); ca.lineTo(kx, ay); ca.stroke();
+        ca.beginPath();
+        ca.moveTo(kx, ay); ca.lineTo(kx - 20, ay - 11); ca.lineTo(kx - 20, ay + 11);
+        ca.closePath(); ca.fill();
+        ca.setLineDash([5, 7]); ca.lineWidth = 2; ca.strokeStyle = css("--ink-faint");
+        ca.beginPath(); ca.moveTo(kx, ay); ca.lineTo(ex, ey); ca.stroke();
+        ca.setLineDash([]);
+        ca.font = "500 21px " + css("--mono"); ca.textAlign = "center"; ca.textBaseline = "top";
+        ca.fillStyle = css("--kin");
+        ca.fillText("F · cos " + vk() + "° = " + nb(F0 * komp, 0) + " N", (x1 + boks / 2 + kx) / 2, ay + 16);
+        ca.restore();
+      }
+    }
+
+    // overskrift
+    ca.fillStyle = css("--ink-faint"); ca.font = "500 22px " + css("--mono");
+    ca.textAlign = "left"; ca.textBaseline = "top";
+    ca.fillText("ARBEID SOM ENERGIOVERFØRING", 60, 34);
+  }
+
+  function skrivArbeid() {
+    var F0 = F(), s0 = s(), grad = vk(), komp = Math.cos(grad * Math.PI / 180);
+    var Wj = F0 * s0 * komp;
+
+    el.Fv.textContent = F0;
+    el.sv.textContent = nb(s0, 1);
+    el.vkv.textContent = grad;
+    el.Wut.textContent = nb(Wj, 0);
+
+    el.Wregne.innerHTML = grad === 0
+      ? "W = F · s = <em>" + F0 + " N</em> · <em>" + nb(s0, 1) + " m</em> = " + nb(Wj, 0) + " J"
+      : "W = F · s · cos θ = <em>" + F0 + " N</em> · <em>" + nb(s0, 1) + " m</em> · cos " + grad + "° = " + nb(Wj, 0) + " J";
+
+    var f = el.Wflagg;
+    if (F0 === 0) {
+      f.className = "flagg null";
+      f.innerHTML = "<strong>Ingen kraft, ikke noe arbeid.</strong> Kassa står stille av seg selv.";
+    } else if (s0 === 0) {
+      f.className = "flagg null";
+      f.innerHTML = "<strong>Kraft, men ingen strekning — arbeidet er null.</strong> Å holde noe tungt i ro er slitsomt for musklene dine, men det overfører ingen energi til gjenstanden. Bytt deg selv med en påle, så er alt fysisk likt.";
+    } else if (grad === 90) {
+      f.className = "flagg null";
+      f.innerHTML = "<strong>Kraften står vinkelrett på bevegelsen — arbeidet er null.</strong> Bærer du en pokal i strak arm mens du går bortover, virker kraften oppover og bevegelsen går sidelengs. Ingen energi overføres til pokalen.";
+    } else {
+      f.className = "flagg";
+      f.innerHTML = "<strong>" + nb(Wj, 0) + " joule er overført til kassa.</strong> De ble ikke borte og de ble ikke laget — de gikk fra deg og over i kassa som bevegelse og i friksjonen som varme. Det er det arbeid <em>er</em>: navnet på en energioverføring ved hjelp av kraft.";
+    }
+  }
+
+  /* ===== B — effekt og kilowattimen ======================================== */
+
+  var APPARATER = [
+    { navn: "LED-pære", P: 8 },
+    { navn: "Ruter", P: 12 },
+    { navn: "Laptop", P: 45 },
+    { navn: "Kjøleskap (snitt)", P: 100 },
+    { navn: "Flatskjerm-TV", P: 120 },
+    { navn: "Stasjonær PC med skjerm", P: 250 },
+    { navn: "Vaskemaskin", P: 700 },
+    { navn: "Mikrobølgeovn", P: 1000 },
+    { navn: "Støvsuger", P: 1200 },
+    { navn: "Panelovn", P: 1500 },
+    { navn: "Vannkoker", P: 2000 },
+    { navn: "Induksjonstopp", P: 3500 },
+    { navn: "Elbil-lader hjemme", P: 7400 }
+  ];
+
+  [el.appA, el.appB].forEach(function (sel, i) {
+    APPARATER.forEach(function (a, k) {
+      var o = document.createElement("option");
+      o.value = k; o.textContent = a.navn + " — " + a.P + " W";
+      sel.appendChild(o);
+    });
+    sel.value = i === 0 ? 10 : 0;      // vannkoker mot LED-pære
+  });
+
+  // Skyveren går fra 1 minutt til 24 timer. Lineær skala ville gjort alt under
+  // en halvtime uleselig, og det er nettopp der de korte apparatene bor.
+  function tidFra(v) { return Math.exp(Math.log(1440) * (v / 100)) / 60; }   // timer
+  function tidTekst(t) {
+    var min = Math.round(t * 60);
+    if (min < 60) return min + " min";
+    var timer = Math.floor(min / 60), rest = min % 60;
+    return timer + " t" + (rest ? " " + rest + " min" : "");
+  }
+
+  function apparat(sel) { return APPARATER[parseInt(sel.value, 10)]; }
+
+  function tegnEffekt() {
+    var W = el.eff.width, H = el.eff.height;
+    var v = 130, h = 60, t = 70, b = 108;
+    var A = apparat(el.appA), B = apparat(el.appB);
+    var tAt = tidFra(parseFloat(el.tA.value)), tBt = tidFra(parseFloat(el.tB.value));
+
+    var Pmax = Math.max(A.P, B.P) * 1.16;
+    var Tmax = Math.max(tAt, tBt, 0.1) * 1.16;
+
+    function X(tt) { return v + (tt / Tmax) * (W - v - h); }
+    function Y(P)  { return H - b - (P / Pmax) * (H - t - b); }
+
+    ce.clearRect(0, 0, W, H);
+
+    ce.font = "500 22px " + css("--mono");
+    ce.fillStyle = css("--ink-faint"); ce.textAlign = "left"; ce.textBaseline = "top";
+    ce.fillText("ENERGIEN ER FLATA", v, 26);
+
+    // rutenett
+    ce.strokeStyle = css("--line"); ce.lineWidth = 1.5;
+    ce.textAlign = "right"; ce.textBaseline = "middle"; ce.font = "21px " + css("--mono");
+    for (var k = 1; k <= 4; k++) {
+      var P = Pmax * k / 4, yy = Y(P);
+      ce.setLineDash([5, 9]);
+      ce.beginPath(); ce.moveTo(v, yy); ce.lineTo(W - h, yy); ce.stroke();
+      ce.setLineDash([]);
+      ce.fillStyle = css("--ink-faint");
+      ce.fillText(Math.round(P) + " W", v - 14, yy);
+    }
+
+    // rektanglene, bredeste bakerst så begge er synlige
+    var rekt = [
+      { P: A.P, t: tAt, farge: "--kin", navn: "A" },
+      { P: B.P, t: tBt, farge: "--pot", navn: "B" }
+    ].sort(function (x, y) { return (y.P * y.t) - (x.P * x.t) || y.P - x.P; });
+
+    rekt.forEach(function (r) {
+      if (r.t <= 0 || r.P <= 0) return;
+      var x1 = X(r.t), y1 = Y(r.P);
+      ce.save();
+      ce.fillStyle = css(r.farge); ce.globalAlpha = 0.30;
+      ce.fillRect(v, y1, x1 - v, (H - b) - y1);
+      ce.globalAlpha = 1; ce.strokeStyle = css(r.farge); ce.lineWidth = 4;
+      ce.strokeRect(v, y1, x1 - v, (H - b) - y1);
+      ce.fillStyle = css(r.farge);
+      ce.font = "600 26px " + css("--mono"); ce.textAlign = "left"; ce.textBaseline = "top";
+      ce.fillText(r.navn, v + 14, y1 + 12);
+      ce.font = "20px " + css("--mono");
+      ce.fillText(r.P + " W · " + tidTekst(r.t), v + 44, y1 + 16);
+      ce.restore();
+    });
+
+    // akser
+    ce.strokeStyle = css("--ink-faint"); ce.lineWidth = 2;
+    ce.beginPath();
+    ce.moveTo(v, t); ce.lineTo(v, H - b); ce.lineTo(W - h, H - b);
+    ce.stroke();
+
+    ce.textAlign = "center"; ce.textBaseline = "top"; ce.font = "21px " + css("--mono");
+    ce.fillStyle = css("--ink-faint");
+    for (var m = 0; m <= 4; m++) {
+      var tt = Tmax * m / 4;
+      ce.fillText(tidTekst(tt), X(tt), H - b + 14);
+    }
+    ce.fillText("tid", (v + W - h) / 2, H - b + 56);
+
+    ce.save();
+    ce.translate(40, (t + H - b) / 2);
+    ce.rotate(-Math.PI / 2);
+    ce.textAlign = "center"; ce.textBaseline = "top";
+    ce.fillText("effekt", 0, 0);
+    ce.restore();
+  }
+
+  function skrivEffekt() {
+    var A = apparat(el.appA), B = apparat(el.appB);
+    var tAt = tidFra(parseFloat(el.tA.value)), tBt = tidFra(parseFloat(el.tB.value));
+    var EAk = A.P * tAt / 1000, EBk = B.P * tBt / 1000;
+
+    el.tAv.textContent = tidTekst(tAt);
+    el.tBv.textContent = tidTekst(tBt);
+    el.EA.textContent = nb(EAk, EAk < 1 ? 3 : 2);
+    el.EB.textContent = nb(EBk, EBk < 1 ? 3 : 2);
+    el.EAbi.textContent = nb(EAk * 3.6, 2) + " MJ · " + A.P + " W · " + tidTekst(tAt);
+    el.EBbi.textContent = nb(EBk * 3.6, 2) + " MJ · " + B.P + " W · " + tidTekst(tBt);
+
+    var stor = Math.max(EAk, EBk), lit = Math.min(EAk, EBk);
+    var avvik = stor > 0 ? (stor - lit) / stor : 1;
+    if (avvik < 0.03 && stor > 0) {
+      el.likhet.className = "panel likhet treff";
+      el.likhet.innerHTML = "<strong>Like store flater.</strong> " + A.navn + " på " + A.P + " W i " + tidTekst(tAt)
+        + " bruker like mye energi som " + B.navn + " på " + B.P + " W i " + tidTekst(tBt)
+        + ". Effekten skiller dem med " + nb(Math.max(A.P, B.P) / Math.max(Math.min(A.P, B.P), 1), 0)
+        + " ganger — tida tar igjen hele forskjellen.";
+    } else {
+      el.likhet.className = "panel likhet";
+      var forhold = lit > 0 ? stor / lit : 0;
+      el.likhet.innerHTML = forhold > 0
+        ? "Den ene flata er <strong>" + nb(forhold, forhold < 10 ? 1 : 0) + " ganger</strong> så stor som den andre. Juster tida til de er like."
+        : "Sett begge tidene over null for å sammenligne flatene.";
+    }
+  }
+
+  /* ===== C — virkningsgrad ================================================= */
+
+  var VG = [
+    { navn: "Glødepære",           tilf: 60,   nyttig: 3,    hva: "lys",             note: "Nitten tjuendedeler av strømmen blir varme. Pæra er en varmeovn som tilfeldigvis lyser." },
+    { navn: "LED-pære",            tilf: 8,    nyttig: 3.4,  hva: "lys",             note: "Samme lysmengde som glødepæra, på en åttendedel av effekten. Det er derfor byttet lønte seg." },
+    { navn: "Bensinmotor i bil",   tilf: 100,  nyttig: 25,   hva: "bevegelse",       note: "Tre firedeler går ut som varme i eksos og kjølevann. Grensa er termodynamisk, ikke et spørsmål om bedre ingeniørarbeid." },
+    { navn: "Elmotor",             tilf: 100,  nyttig: 90,   hva: "bevegelse",       note: "Elmotoren slipper omveien om varme, og det er hele forklaringen på forskjellen fra bensinmotoren." },
+    { navn: "Kullkraftverk",       tilf: 100,  nyttig: 40,   hva: "elektrisk energi", note: "Varmekraftverk er bundet av samme grense som bensinmotoren: de må gå veien om varme." },
+    { navn: "Vannkraftverk",       tilf: 100,  nyttig: 90,   hva: "elektrisk energi", note: "Stillingsenergi rett til bevegelse til strøm, uten et varmesteg imellom." },
+    { navn: "Vannkoker",           tilf: 2000, nyttig: 1800, hva: "varme i vannet",  note: "Her er varme selve poenget. Tapet er det som varmer opp kanna og kjøkkenet i stedet for vannet." },
+    { navn: "Menneske på sykkel",  tilf: 100,  nyttig: 25,   hva: "arbeid på pedalene", note: "Resten blir kroppsvarme. Det er derfor du blir svett, og det er samme regnskap som i en motor." }
+  ];
+
+  VG.forEach(function (v, k) {
+    var o = document.createElement("option");
+    o.value = k; o.textContent = v.navn;
+    el.vgVelg.appendChild(o);
+  });
+  el.vgVelg.value = 0;
+
+  function skrivVG() {
+    var v = VG[parseInt(el.vgVelg.value, 10)];
+    var eta = v.nyttig / v.tilf, tap = v.tilf - v.nyttig;
+
+    el.vgNyttig.style.width = (eta * 100) + "%";
+    el.vgTap.style.width = ((1 - eta) * 100) + "%";
+    el.vgNyttigLbl.textContent = eta > 0.16 ? "nyttig: " + v.hva : "";
+    el.vgTapLbl.textContent = (1 - eta) > 0.16 ? "tap: varme til omgivelsene" : "";
+
+    el.brokOver.textContent = nb(v.nyttig, v.nyttig % 1 ? 1 : 0) + " J";
+    el.brokUnder.textContent = nb(v.tilf, 0) + " J";
+    el.vgTall.textContent = nb(eta, 2);
+    el.vgProsent.textContent = nb(eta * 100, eta * 100 < 10 ? 1 : 0);
+
+    el.vgDom.innerHTML = "Av hver <strong>" + nb(v.tilf, 0) + " joule</strong> som går inn, kommer <strong>"
+      + nb(v.nyttig, v.nyttig % 1 ? 1 : 0) + " J</strong> ut som " + v.hva + " og <strong>" + nb(tap, 0)
+      + " J</strong> som varme til omgivelsene. " + v.note;
+  }
+
+  /* ===== oppdatering ======================================================= */
+
+  function oppdaterA() { skrivArbeid(); tegnArbeid(); }
+  function oppdaterB() { skrivEffekt(); tegnEffekt(); }
+
+  [el.F, el.s, el.vk].forEach(function (i) { i.addEventListener("input", oppdaterA); });
+  [el.appA, el.appB, el.tA, el.tB].forEach(function (i) { i.addEventListener("input", oppdaterB); i.addEventListener("change", oppdaterB); });
+  el.vgVelg.addEventListener("change", skrivVG);
+
+  // Fargene i canvas leses ut av CSS-variablene, så et temaskifte må tegne på nytt.
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var omTema = function () { oppdaterA(); oppdaterB(); };
+    if (mq.addEventListener) mq.addEventListener("change", omTema); else if (mq.addListener) mq.addListener(omTema);
+  }
+
+  oppdaterA();
+  oppdaterB();
+  skrivVG();
+})();
+</script>
+
+</body>
+</html>

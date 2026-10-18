@@ -1,0 +1,1438 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Hva bestemmer svingetiden?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400..600&display=swap">
+
+<style>
+  :root {
+    --bg: #EDF0EF;
+    --surface: #FBFCFC;
+    --surface-2: #F2F5F4;
+    --line: #D4DDDB;
+    --line-soft: #E3EAE8;
+    --ink: #12201E;
+    --ink-2: #52635F;
+    --ink-3: #7B8C87;
+    --a: #0E7C71;
+    --a-soft: #DCEBE8;
+    --b: #A96B0C;
+    --b-soft: #F4E8D2;
+    --c: #5B4F9C;
+    --shadow: 0 1px 2px rgba(18, 32, 30, .05), 0 8px 24px -16px rgba(18, 32, 30, .3);
+
+    --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1413;
+      --surface: #151F1D;
+      --surface-2: #1B2624;
+      --line: #2A3735;
+      --line-soft: #212D2B;
+      --ink: #E7EEEB;
+      --ink-2: #9CACA7;
+      --ink-3: #7A8B86;
+      --a: #4EBEAD;
+      --a-soft: #10302C;
+      --b: #E1A63F;
+      --b-soft: #33260F;
+      --c: #9F91DE;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0D1413;
+    --surface: #151F1D;
+    --surface-2: #1B2624;
+    --line: #2A3735;
+    --line-soft: #212D2B;
+    --ink: #E7EEEB;
+    --ink-2: #9CACA7;
+    --ink-3: #7A8B86;
+    --a: #4EBEAD;
+    --a-soft: #10302C;
+    --b: #E1A63F;
+    --b-soft: #33260F;
+    --c: #9F91DE;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: min(100% - 2rem, 60rem);
+    margin-inline: auto;
+    padding-block: clamp(2rem, 6vw, 4rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 5vw, 3.75rem);
+  }
+
+  .prose { max-width: 42rem; }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.08;
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: -0.015em;
+  }
+
+  h1 { font-size: clamp(2.1rem, 6vw, 3.1rem); }
+  h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); }
+  h3 { font-size: 1.05rem; font-weight: 600; letter-spacing: 0; }
+
+  p { margin: 0; }
+
+  a { color: var(--a); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* ---------- header ---------- */
+
+  .masthead { display: flex; flex-direction: column; gap: 1rem; }
+
+  .lead {
+    max-width: 38rem;
+    font-size: 1.12rem;
+    color: var(--ink-2);
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem .5rem;
+    margin-top: .35rem;
+  }
+
+  .fact {
+    font-family: var(--font-mono);
+    font-size: .74rem;
+    letter-spacing: .02em;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .3rem .7rem;
+  }
+
+  /* ---------- generic section ---------- */
+
+  .block { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  .block__head { display: flex; flex-direction: column; gap: .35rem; }
+
+  .rule {
+    height: 1px;
+    background: var(--line);
+    border: 0;
+    margin: 0;
+  }
+
+  /* ---------- variable cards ---------- */
+
+  .vars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: .9rem;
+  }
+
+  .var {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--vc, var(--a));
+    border-radius: 10px;
+    padding: .95rem 1.05rem;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    box-shadow: var(--shadow);
+  }
+
+  .var__kind {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--vc, var(--a));
+    font-weight: 600;
+  }
+
+  .var__name { font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; }
+
+  .var__body { font-size: .95rem; color: var(--ink-2); }
+
+  /* ---------- prediction ---------- */
+
+  .predict {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+    box-shadow: var(--shadow);
+  }
+
+  .predict__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    padding-bottom: .8rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .predict__row:last-of-type { border-bottom: 0; padding-bottom: 0; }
+
+  .predict__q { font-size: .98rem; }
+
+  .choice { display: flex; gap: .4rem; }
+
+  .choice button {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: .32rem .8rem;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+
+  .choice button:hover { border-color: var(--ink-3); }
+
+  .choice button[aria-pressed="true"] {
+    background: var(--a);
+    border-color: var(--a);
+    color: var(--surface);
+  }
+
+  /* ---------- steps ---------- */
+
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+    max-width: 42rem;
+  }
+
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.6rem;
+    min-height: 1.6rem;
+  }
+
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: .18rem;
+    width: 1.9rem;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--a);
+    background: var(--a-soft);
+    border-radius: 6px;
+    padding: .12rem 0;
+    text-align: center;
+  }
+
+  /* ---------- panel ---------- */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .panel__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .45rem;
+    padding: .7rem .8rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: .38rem .78rem;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+
+  .btn:hover { border-color: var(--ink-3); }
+
+  .btn--go {
+    background: var(--a);
+    border-color: var(--a);
+    color: #fff;
+  }
+
+  :root[data-theme="dark"] .btn--go { color: #06201C; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .btn--go { color: #06201C; }
+  }
+
+  .btn--go:hover { filter: brightness(1.06); border-color: var(--a); }
+
+  .bar__spacer { flex: 1 1 1rem; }
+
+  .bar__label {
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-right: .1rem;
+  }
+
+  .btn--tiny { padding: .3rem .55rem; font-size: .72rem; }
+
+  .btn[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--surface);
+  }
+
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    padding: .7rem .8rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .panel__stage { background: var(--surface-2); border-bottom: 1px solid var(--line); }
+
+  #stage { display: block; width: 100%; height: clamp(300px, 44vh, 420px); }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 40rem) {
+    .cols { grid-template-columns: 1fr; }
+  }
+
+  .col {
+    padding: 1rem 1.05rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+  }
+
+  .col + .col { border-left: 1px solid var(--line); }
+
+  @media (max-width: 40rem) {
+    .col + .col { border-left: 0; border-top: 1px solid var(--line); }
+  }
+
+  .col--a { --hue: var(--a); --hue-soft: var(--a-soft); }
+  .col--b { --hue: var(--b); --hue-soft: var(--b-soft); }
+
+  .col__head { display: flex; align-items: center; gap: .55rem; }
+
+  .dot {
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--hue);
+    color: var(--surface);
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+
+  :root[data-theme="dark"] .dot { color: #0D1413; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dot { color: #0D1413; }
+  }
+
+  .col__title { font-family: var(--font-display); font-weight: 600; font-size: .98rem; }
+
+  .field { display: flex; flex-direction: column; gap: .2rem; }
+
+  .field__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .5rem;
+  }
+
+  .field__label {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .field__value {
+    font-family: var(--font-mono);
+    font-size: .88rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--hue);
+    cursor: pointer;
+    margin: 0;
+  }
+
+  input[type="range"]:focus-visible,
+  .btn:focus-visible,
+  .choice button:focus-visible,
+  input[type="number"]:focus-visible,
+  input[type="text"]:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--a);
+    outline-offset: 2px;
+  }
+
+  .readout {
+    background: var(--hue-soft);
+    border-radius: 9px;
+    padding: .7rem .8rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+
+  .readout__row {
+    display: flex;
+    justify-content: space-between;
+    gap: .6rem;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+
+  .readout__row b { color: var(--ink); font-weight: 600; }
+
+  .readout__result {
+    font-family: var(--font-mono);
+    font-size: .92rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--hue);
+    border-top: 1px solid color-mix(in srgb, var(--hue) 25%, transparent);
+    padding-top: .35rem;
+    margin-top: .15rem;
+  }
+
+  .readout__result[data-empty="true"] { color: var(--ink-3); font-weight: 400; }
+
+  .panel__foot {
+    border-top: 1px solid var(--line);
+    padding: .8rem 1.05rem;
+    font-size: .9rem;
+    color: var(--ink-2);
+    background: var(--surface-2);
+  }
+
+  /* ---------- table ---------- */
+
+  .tablewrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  table { border-collapse: collapse; width: 100%; min-width: 46rem; }
+
+  thead th {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+    text-align: left;
+    padding: .7rem .6rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: .3rem .35rem;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: 0; }
+
+  td input {
+    font-family: var(--font-mono);
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: .35rem .4rem;
+    width: 100%;
+  }
+
+  td input:hover { border-color: var(--line); }
+  td input:focus { background: var(--surface-2); border-color: var(--line); outline-offset: 0; }
+
+  td.name input { font-family: var(--font-body); font-size: .92rem; min-width: 11rem; }
+
+  td.num { width: 4.6rem; }
+
+  td.calc {
+    font-family: var(--font-mono);
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+    padding-inline: .6rem;
+    white-space: nowrap;
+  }
+
+  td.calc--t { color: var(--a); font-weight: 600; }
+
+  .table-actions { display: flex; gap: .45rem; flex-wrap: wrap; }
+
+  /* ---------- details ---------- */
+
+  details {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  summary {
+    cursor: pointer;
+    padding: .9rem 1.05rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+
+  summary::-webkit-details-marker { display: none; }
+
+  summary::before {
+    content: "+";
+    font-family: var(--font-mono);
+    font-size: .95rem;
+    color: var(--a);
+    width: 1.1rem;
+    text-align: center;
+    flex: none;
+  }
+
+  details[open] summary::before { content: "–"; }
+
+  .details__body {
+    padding: 0 1.05rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    max-width: 44rem;
+  }
+
+  .formula {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: .7rem .85rem;
+    color: var(--ink);
+    overflow-x: auto;
+  }
+
+  .minitable { width: 100%; min-width: 0; }
+
+  .minitable th, .minitable td {
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+    padding: .35rem .5rem;
+  }
+
+  .minitable th { text-transform: none; letter-spacing: .04em; background: transparent; }
+
+  .finding {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .55rem .7rem;
+    align-items: start;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .2rem .5rem;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .tag--no { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .tag--some { background: var(--b-soft); color: var(--b); }
+  .tag--yes { background: var(--a-soft); color: var(--a); }
+
+  ul.plain { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .4rem; }
+
+  .note {
+    font-size: .92rem;
+    color: var(--ink-2);
+  }
+
+  footer.colofon {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media print {
+    .panel__bar, .presets, .panel__stage, .table-actions { display: none; }
+    body { background: #fff; }
+    details { break-inside: avoid; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <span class="eyebrow">Naturfag 8. trinn · Forsøk</span>
+    <h1>Hva bestemmer svingetiden?</h1>
+    <p class="lead">Dere skal finne ut hva som faktisk endrer tiden en pendel bruker på én tur frem og tilbake — og hva som ikke gjør det. Tre ting kan endres: hvor tung kula er, hvor høyt dere slipper den fra, og hvor lang tråden er. Bare én av dem betyr noe særlig.</p>
+    <div class="facts">
+      <span class="fact">4 oppsett</span>
+      <span class="fact">5 målinger hver</span>
+      <span class="fact">10 svingninger per måling</span>
+      <span class="fact">ca. 60 min</span>
+    </div>
+  </header>
+
+  <hr class="rule">
+
+  <section class="block">
+    <div class="block__head">
+      <span class="eyebrow">01 · Før dere måler</span>
+      <h2>Variablene i forsøket</h2>
+    </div>
+    <p class="prose">I et godt forsøk endrer dere <b>én ting av gangen</b> og holder alt annet likt. Da vet dere hva som forårsaket forskjellen dere måler.</p>
+    <div class="vars">
+      <div class="var" style="--vc: var(--c)">
+        <span class="var__kind">Uavhengige variabler</span>
+        <span class="var__name">Massen · utfallsvinkelen · trådlengden</span>
+        <span class="var__body">Dette er de tre tingene dere endrer på — én om gangen.</span>
+      </div>
+      <div class="var" style="--vc: var(--a)">
+        <span class="var__kind">Avhengig variabel</span>
+        <span class="var__name">Svingetiden T</span>
+        <span class="var__body">Tiden for én full svingning, frem og tilbake. Målt i sekunder.</span>
+      </div>
+      <div class="var" style="--vc: var(--b)">
+        <span class="var__kind">Kontrollerte variabler</span>
+        <span class="var__name">Alt annet</span>
+        <span class="var__body">Samme oppheng, samme tråd, samme person som stopper klokka, samme tellemåte.</span>
+      </div>
+    </div>
+
+    <div class="predict" id="predict">
+      <div>
+        <h3>Gjett først</h3>
+        <p class="note">Kryss av før dere måler. Fasiten ligger nederst på siden — ikke åpne den før dere har egne tall.</p>
+      </div>
+      <div class="predict__row">
+        <span class="predict__q">Blir svingetiden lengre med en tyngre kule?</span>
+        <span class="choice" data-q="masse">
+          <button type="button" data-v="ja" aria-pressed="false">Ja</button>
+          <button type="button" data-v="nei" aria-pressed="false">Nei</button>
+        </span>
+      </div>
+      <div class="predict__row">
+        <span class="predict__q">Blir svingetiden lengre når dere slipper fra 90° i stedet for 45°?</span>
+        <span class="choice" data-q="vinkel">
+          <button type="button" data-v="ja" aria-pressed="false">Ja</button>
+          <button type="button" data-v="nei" aria-pressed="false">Nei</button>
+        </span>
+      </div>
+      <div class="predict__row">
+        <span class="predict__q">Blir svingetiden lengre med lengre tråd?</span>
+        <span class="choice" data-q="lengde">
+          <button type="button" data-v="ja" aria-pressed="false">Ja</button>
+          <button type="button" data-v="nei" aria-pressed="false">Nei</button>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="block">
+    <div class="block__head">
+      <span class="eyebrow">02 · Fremgangsmåte</span>
+      <h2>Slik måler dere</h2>
+    </div>
+    <ol class="steps">
+      <li>Heng opp pendelen. Mål trådlengden fra opphenget til <b>midten av kula</b>, ikke til toppen av den.</li>
+      <li>Trekk kula ut til den vinkelen oppsettet krever og slipp den — ikke dytt.</li>
+      <li>Start klokka i det kula snur i ytterpunktet, og tell <b>10 hele svingninger</b>. Én svingning er frem <em>og</em> tilbake til samme side.</li>
+      <li>Gjenta til dere har <b>5 målinger</b> av samme oppsett.</li>
+      <li>Regn ut snittet av de fem, og del snittet på 10. Da har dere svingetiden T for én svingning.</li>
+      <li>Bytt <b>én</b> variabel og gjenta hele runden.</li>
+    </ol>
+    <p class="prose note">Hvorfor 10 svingninger og ikke én? Reaksjonstiden din er på et par tideler, og den feilen blir den samme uansett hvor lenge du måler. Deler du på 10, blir feilen ti ganger mindre. De fem gjentakelsene viser hvor mye målingene spriker — spriker de mye, er det noe med metoden.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section class="block">
+    <div class="block__head">
+      <span class="eyebrow">03 · Prøv selv</span>
+      <h2>To pendler, side om side</h2>
+    </div>
+    <p class="prose">Still inn de to pendlene, slipp dem samtidig og se hvem som kommer først til 10 svingninger. Simulatoren regner ikke ut noe fasitsvar for dere — den svinger, og dere leser av klokka akkurat som i klasserommet.</p>
+
+    <div class="panel">
+      <div class="presets" id="presets">
+        <span class="bar__label">Oppsett</span>
+        <button type="button" class="btn btn--tiny" data-preset="masse">Tung vs. lett kule</button>
+        <button type="button" class="btn btn--tiny" data-preset="vinkel">90° vs. 45° utfall</button>
+        <button type="button" class="btn btn--tiny" data-preset="lengde">Kort vs. lang tråd</button>
+        <button type="button" class="btn btn--tiny" data-preset="likt">Alt likt (kontroll)</button>
+      </div>
+
+      <div class="panel__bar">
+        <button type="button" class="btn btn--go" id="go">Slipp begge</button>
+        <button type="button" class="btn" id="reset">Nullstill</button>
+        <span class="bar__spacer"></span>
+        <span class="bar__label">Fart</span>
+        <button type="button" class="btn btn--tiny speed" data-speed="1" aria-pressed="true">1×</button>
+        <button type="button" class="btn btn--tiny speed" data-speed="2" aria-pressed="false">2×</button>
+        <button type="button" class="btn btn--tiny speed" data-speed="4" aria-pressed="false">4×</button>
+      </div>
+
+      <div class="panel__stage">
+        <canvas id="stage" aria-label="To pendler som svinger side om side"></canvas>
+      </div>
+
+      <div class="cols">
+        <div class="col col--a">
+          <div class="col__head"><span class="dot">A</span><span class="col__title">Pendel A</span></div>
+
+          <div class="field">
+            <div class="field__top"><label class="field__label" for="A-L">Trådlengde</label><span class="field__value" id="A-L-val">60 cm</span></div>
+            <input type="range" id="A-L" min="20" max="120" step="5" value="60">
+          </div>
+          <div class="field">
+            <div class="field__top"><label class="field__label" for="A-deg">Utfallsvinkel</label><span class="field__value" id="A-deg-val">20°</span></div>
+            <input type="range" id="A-deg" min="5" max="90" step="5" value="20">
+          </div>
+          <div class="field">
+            <div class="field__top"><label class="field__label" for="A-m">Masse på kula</label><span class="field__value" id="A-m-val">200 g</span></div>
+            <input type="range" id="A-m" min="20" max="500" step="10" value="200">
+          </div>
+
+          <div class="readout">
+            <div class="readout__row"><span>Svingninger</span><b id="A-count">0 / 10</b></div>
+            <div class="readout__row"><span>Stoppeklokke</span><b id="A-time">0,00 s</b></div>
+            <div class="readout__result" id="A-res" data-empty="true">Venter på 10 svingninger</div>
+          </div>
+        </div>
+
+        <div class="col col--b">
+          <div class="col__head"><span class="dot">B</span><span class="col__title">Pendel B</span></div>
+
+          <div class="field">
+            <div class="field__top"><label class="field__label" for="B-L">Trådlengde</label><span class="field__value" id="B-L-val">60 cm</span></div>
+            <input type="range" id="B-L" min="20" max="120" step="5" value="60">
+          </div>
+          <div class="field">
+            <div class="field__top"><label class="field__label" for="B-deg">Utfallsvinkel</label><span class="field__value" id="B-deg-val">20°</span></div>
+            <input type="range" id="B-deg" min="5" max="90" step="5" value="20">
+          </div>
+          <div class="field">
+            <div class="field__top"><label class="field__label" for="B-m">Masse på kula</label><span class="field__value" id="B-m-val">50 g</span></div>
+            <input type="range" id="B-m" min="20" max="500" step="10" value="50">
+          </div>
+
+          <div class="readout">
+            <div class="readout__row"><span>Svingninger</span><b id="B-count">0 / 10</b></div>
+            <div class="readout__row"><span>Stoppeklokke</span><b id="B-time">0,00 s</b></div>
+            <div class="readout__result" id="B-res" data-empty="true">Venter på 10 svingninger</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="panel__foot" id="verdict">Simulatoren har ingen luftmotstand og ingen friksjon i opphenget, så pendlene stopper aldri. I klasserommet gjør de det — men svingetiden endrer seg nesten ikke selv om utslaget blir mindre.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="block">
+    <div class="block__head">
+      <span class="eyebrow">04 · Resultater</span>
+      <h2>Måletabell</h2>
+    </div>
+    <p class="prose">Skriv inn tiden for 10 svingninger i hver av de fem målingene. Snittet og svingetiden regnes ut mens dere skriver. Tallene lagres i nettleseren på denne maskinen.</p>
+    <div class="tablewrap">
+      <table id="data">
+        <thead>
+          <tr>
+            <th>Oppsett</th>
+            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+            <th>Snitt (10 sv.)</th>
+            <th>Svingetid T</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="table-actions">
+      <button type="button" class="btn" id="addrow">Legg til rad</button>
+      <button type="button" class="btn" id="clear">Tøm tabellen</button>
+    </div>
+    <p class="prose note">Snittet regnes ut av de rutene dere har fylt ut. Svingetiden er snittet delt på 10.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section class="block">
+    <div class="block__head">
+      <span class="eyebrow">05 · Fasit</span>
+      <h2>Hva forsøket viser</h2>
+    </div>
+
+    <details id="fasit">
+      <summary>Åpne fasiten — etter at dere har målt</summary>
+      <div class="details__body">
+        <div class="finding">
+          <span class="tag tag--no">Massen</span>
+          <span>Ingen effekt. En kule på 500 g og en på 50 g svinger like fort, så lenge tråden er like lang. Tyngdekraften trekker hardere i den tunge kula, men den tunge kula er også tyngre å sette i bevegelse. De to tingene opphever hverandre nøyaktig.</span>
+        </div>
+        <div class="finding">
+          <span class="tag tag--some">Utfallet</span>
+          <span>Liten effekt ved små vinkler, målbar ved store. Ved 20° er svingetiden bare 0,8 % lengre enn ved et bitte lite utslag. Ved 45° er den ca. 4 % lengre, og ved 90° hele 18 % lengre. Med 60 cm tråd betyr det 16,2 s mot 18,3 s for 10 svingninger — det klarer dere å måle med en vanlig stoppeklokke.</span>
+        </div>
+        <div class="finding">
+          <span class="tag tag--yes">Lengden</span>
+          <span>Stor effekt. Lengre tråd gir lengre svingetid. Men ikke rett fram: firedobler dere lengden, blir svingetiden bare dobbelt så lang. 30 cm gir 1,10 s, 120 cm gir 2,20 s.</span>
+        </div>
+
+        <p class="formula">T = 2π · √(L / g)&nbsp;&nbsp;&nbsp;&nbsp;g = 9,81 m/s²</p>
+        <p class="note">L er lengden i meter, målt til midten av kula. Legg merke til at massen ikke står i formelen i det hele tatt — og at utfallsvinkelen heller ikke gjør det. Formelen gjelder for små utslag; ved 90° gir den for kort svar.</p>
+
+        <table class="minitable">
+          <thead><tr><th>Trådlengde</th><th>Svingetid T</th><th>10 svingninger</th></tr></thead>
+          <tbody>
+            <tr><td>20 cm</td><td>0,90 s</td><td>9,0 s</td></tr>
+            <tr><td>30 cm</td><td>1,10 s</td><td>11,0 s</td></tr>
+            <tr><td>60 cm</td><td>1,55 s</td><td>15,5 s</td></tr>
+            <tr><td>100 cm</td><td>2,01 s</td><td>20,1 s</td></tr>
+            <tr><td>120 cm</td><td>2,20 s</td><td>22,0 s</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Tabellen gjelder små utslag. Slipper dere fra 20°, blir tidene ca. 0,8 % lengre enn her — det er derfor simulatoren viser 15,66 s og ikke 15,54 s på 60 cm.</p>
+        <p class="note">Et sekundpendel — en pendel som bruker nøyaktig 1 sekund fra ytterpunkt til ytterpunkt, altså T = 2 s — må være 99,4 cm lang. Det er derfor gamle gulvklokker er så høye: lengden er bestemt av sekundet.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Feilkilder å skrive om i rapporten</summary>
+      <div class="details__body">
+        <ul class="plain">
+          <li><b>Reaksjonstid.</b> Du starter og stopper klokka litt for sent. Derfor måler dere 10 svingninger og deler på 10.</li>
+          <li><b>Hvor dere måler lengden.</b> Til toppen av kula eller til midten? Med en stor kule kan det gi flere centimeters forskjell.</li>
+          <li><b>Telling.</b> Det er lett å telle «én» når kula passerer bunnen første gang. Én svingning er frem og tilbake — start og slutt i samme ytterpunkt.</li>
+          <li><b>Dytt i stedet for slipp.</b> Da får kula fart fra start, og utfallsvinkelen er ikke lenger den dere trodde.</li>
+          <li><b>Pendelen svinger i sirkel</b> i stedet for frem og tilbake. Slipp rett bakover uten sidebevegelse.</li>
+          <li><b>Tråden strekker seg</b> eller opphenget beveger seg litt. Bruk en tråd som ikke tøyer seg, og fest den godt.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Til læreren</summary>
+      <div class="details__body">
+        <p><b>Utstyr per gruppe:</b> stativ med klemme, hyssing, to–tre lodd med tydelig ulik masse, linjal eller målebånd, gradskive, stoppeklokke (mobil går fint).</p>
+        <p><b>Kompetansemål etter 10. trinn (LK20, naturfag):</b> «stille spørsmål og lage hypoteser om naturfaglige fenomener, identifisere avhengige og uavhengige variabler og samle data for å finne svar» og «analysere og bruke innsamlede data til å lage forklaringer, drøfte forklaringene i lys av relevant teori og vurdere kvaliteten på egne og andres utforskinger».</p>
+        <p><b>Kjerneelement:</b> Naturvitenskapelige praksiser og tenkemåter.</p>
+        <p><b>Vurdering:</b> underveisvurdering på gjennomføringen — endrer gruppa én variabel av gangen? — og på hvordan de begrunner konklusjonen ut fra egne tall. Måletabellen og feilkildene er det som skiller en beskrivelse fra en drøfting.</p>
+        <p class="note"><b>Faglig fallgruve:</b> Mange forsøksark påstår at utfallsvinkelen ikke betyr noe. Det stemmer bare for små vinkler. Slipper elevene fra 90°, får de faktisk et målbart utslag, og det er en fin anledning til å snakke om at en modell har et gyldighetsområde. La gruppa som måler forskjell få rett.</p>
+      </div>
+    </details>
+  </section>
+
+  <footer class="colofon">Naturfag 8. trinn · Pendelforsøk · Simuleringen løser pendelligningen numerisk uten småvinkeltilnærming, så store utslag oppfører seg som i virkeligheten.</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var G = 9.81;
+  var STORE = "pendel8-v1";
+
+  function nb(x, d) { return x.toFixed(d).replace(".", ","); }
+
+  function save(obj) {
+    try { localStorage.setItem(STORE, JSON.stringify(obj)); } catch (e) {}
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  var state = load() || {};
+
+  /* ---------------- simulation ---------------- */
+
+  function mk(L, deg, m) {
+    return { L: L, deg: deg, m: m, th: deg * Math.PI / 180, w: 0, swings: 0, t10: null, prevW: 0 };
+  }
+
+  var P = { A: mk(0.60, 20, 200), B: mk(0.60, 20, 50) };
+  var running = false, simT = 0, speed = 1, acc = 0, last = 0;
+
+  var el = {};
+  ["A", "B"].forEach(function (k) {
+    el[k] = {
+      L: document.getElementById(k + "-L"),
+      deg: document.getElementById(k + "-deg"),
+      m: document.getElementById(k + "-m"),
+      Lv: document.getElementById(k + "-L-val"),
+      degv: document.getElementById(k + "-deg-val"),
+      mv: document.getElementById(k + "-m-val"),
+      count: document.getElementById(k + "-count"),
+      time: document.getElementById(k + "-time"),
+      res: document.getElementById(k + "-res")
+    };
+  });
+
+  var goBtn = document.getElementById("go");
+  var verdict = document.getElementById("verdict");
+  var DEFAULT_FOOT = verdict.textContent;
+
+  function resetSim() {
+    running = false;
+    simT = 0;
+    goBtn.textContent = "Slipp begge";
+    ["A", "B"].forEach(function (k) {
+      var p = P[k];
+      p.th = p.deg * Math.PI / 180;
+      p.w = 0;
+      p.prevW = 0;
+      p.swings = 0;
+      p.t10 = null;
+    });
+    verdict.textContent = DEFAULT_FOOT;
+    paint();
+    draw();
+  }
+
+  function readControls() {
+    ["A", "B"].forEach(function (k) {
+      var p = P[k];
+      p.L = parseFloat(el[k].L.value) / 100;
+      p.deg = parseFloat(el[k].deg.value);
+      p.m = parseFloat(el[k].m.value);
+      el[k].Lv.textContent = el[k].L.value + " cm";
+      el[k].degv.textContent = el[k].deg.value + "°";
+      el[k].mv.textContent = el[k].m.value + " g";
+    });
+  }
+
+  function deriv(th, w, L) { return [w, -(G / L) * Math.sin(th)]; }
+
+  function step(p, dt) {
+    var L = p.L;
+    var a1 = deriv(p.th, p.w, L);
+    var a2 = deriv(p.th + 0.5 * dt * a1[0], p.w + 0.5 * dt * a1[1], L);
+    var a3 = deriv(p.th + 0.5 * dt * a2[0], p.w + 0.5 * dt * a2[1], L);
+    var a4 = deriv(p.th + dt * a3[0], p.w + dt * a3[1], L);
+    p.prevW = p.w;
+    p.th += dt / 6 * (a1[0] + 2 * a2[0] + 2 * a3[0] + a4[0]);
+    p.w += dt / 6 * (a1[1] + 2 * a2[1] + 2 * a3[1] + a4[1]);
+  }
+
+  function advance(dt, tBefore) {
+    ["A", "B"].forEach(function (k) {
+      var p = P[k];
+      if (p.t10 !== null) { /* keep swinging, but stop counting */ }
+      step(p, dt);
+      if (p.prevW > 0 && p.w <= 0) {
+        p.swings += 1;
+        if (p.swings === 10 && p.t10 === null) {
+          var f = p.prevW / (p.prevW - p.w);
+          p.t10 = tBefore + f * dt;
+        }
+      }
+    });
+  }
+
+  function paint() {
+    ["A", "B"].forEach(function (k) {
+      var p = P[k];
+      el[k].count.textContent = Math.min(p.swings, 10) + " / 10";
+      el[k].time.textContent = nb(p.t10 !== null ? p.t10 : simT, 2) + " s";
+      if (p.t10 !== null) {
+        el[k].res.dataset.empty = "false";
+        el[k].res.textContent = "10 svingninger på " + nb(p.t10, 2) + " s → T = " + nb(p.t10 / 10, 3) + " s";
+      } else {
+        el[k].res.dataset.empty = "true";
+        el[k].res.textContent = "Venter på 10 svingninger";
+      }
+    });
+  }
+
+  function conclude() {
+    var a = P.A.t10 / 10, b = P.B.t10 / 10;
+    var diff = Math.abs(a - b);
+    var rel = diff / Math.min(a, b) * 100;
+    var txt;
+    if (rel < 0.5) {
+      txt = "Begge fikk T ≈ " + nb(a, 2) + " s. Forskjellen er under en halv prosent — innenfor det en stoppeklokke uansett klarer å skille.";
+    } else {
+      var slow = a > b ? "A" : "B";
+      txt = "Pendel A: T = " + nb(a, 3) + " s. Pendel B: T = " + nb(b, 3) + " s. " +
+            slow + " bruker " + nb(rel, 1) + " % lengre tid på hver svingning.";
+    }
+    verdict.textContent = txt;
+  }
+
+  /* ---------------- drawing ---------------- */
+
+  var cv = document.getElementById("stage");
+  var ctx = cv.getContext("2d");
+  var W = 0, H = 0, colors = {};
+
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    colors = {
+      a: cs.getPropertyValue("--a").trim(),
+      b: cs.getPropertyValue("--b").trim(),
+      line: cs.getPropertyValue("--line").trim(),
+      ink3: cs.getPropertyValue("--ink-3").trim(),
+      ink2: cs.getPropertyValue("--ink-2").trim(),
+      surface: cs.getPropertyValue("--surface-2").trim()
+    };
+  }
+
+  function sizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    readColors();
+    draw();
+  }
+
+  function bobRadius(m) { return 7 + 15 * Math.cbrt(m / 500); }
+
+  function drawOne(p, cx, pivotY, scale, color, label) {
+    var L = p.L * scale;
+    var x = cx + L * Math.sin(p.th);
+    var y = pivotY + L * Math.cos(p.th);
+    var th0 = p.deg * Math.PI / 180;
+
+    ctx.save();
+
+    /* swing arc */
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.arc(cx, pivotY, L, Math.PI / 2 - th0, Math.PI / 2 + th0);
+    ctx.stroke();
+
+    /* release guides */
+    ctx.strokeStyle = colors.ink3;
+    ctx.globalAlpha = 0.45;
+    [-1, 1].forEach(function (s) {
+      ctx.beginPath();
+      ctx.moveTo(cx, pivotY);
+      ctx.lineTo(cx + s * L * Math.sin(th0), pivotY + L * Math.cos(th0));
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+    ctx.setLineDash([]);
+
+    /* string */
+    ctx.strokeStyle = colors.ink2;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, pivotY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    /* bob */
+    var r = bobRadius(p.m);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* pivot */
+    ctx.fillStyle = colors.ink2;
+    ctx.beginPath();
+    ctx.arc(cx, pivotY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* label */
+    ctx.fillStyle = color;
+    ctx.font = "600 12px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(label + " — " + Math.round(p.L * 100) + " cm, " + p.deg + "°, " + p.m + " g", cx, pivotY - 14);
+
+    ctx.restore();
+  }
+
+  function drawRuler(pivotY, scale) {
+    var x = W < 520 ? 22 : Math.round(W * 0.055);
+    ctx.save();
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, pivotY);
+    ctx.lineTo(x, pivotY + 1.2 * scale);
+    ctx.stroke();
+
+    ctx.font = "400 10px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = colors.ink3;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for (var cm = 0; cm <= 120; cm += 10) {
+      var y = pivotY + cm / 100 * scale;
+      var major = cm % 20 === 0;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + (major ? 9 : 5), y);
+      ctx.stroke();
+      if (major) ctx.fillText(cm === 0 ? "0 cm" : String(cm), x + 12, y);
+    }
+
+    ["A", "B"].forEach(function (k) {
+      var p = P[k];
+      var y = pivotY + p.L * scale;
+      ctx.fillStyle = k === "A" ? colors.a : colors.b;
+      ctx.beginPath();
+      ctx.moveTo(x - 1, y);
+      ctx.lineTo(x - 8, y - 4);
+      ctx.lineTo(x - 8, y + 4);
+      ctx.closePath();
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function draw() {
+    if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+
+    var pivotY = 46;
+    var maxL = 1.25;
+    var scale = (H - pivotY - 34) / maxL;
+
+    drawRuler(pivotY, scale);
+
+    /* beam */
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.10, pivotY);
+    ctx.lineTo(W * 0.90, pivotY);
+    ctx.stroke();
+
+    drawOne(P.A, W * 0.30, pivotY, scale, colors.a, "A");
+    drawOne(P.B, W * 0.70, pivotY, scale, colors.b, "B");
+  }
+
+  /* ---------------- loop ---------------- */
+
+  function frame(ts) {
+    if (running) {
+      if (!last) last = ts;
+      var real = Math.min((ts - last) / 1000, 0.1);
+      last = ts;
+      acc += real * speed;
+      var dt = 1 / 480;
+      var guard = 0;
+      while (acc >= dt && guard < 5000) {
+        advance(dt, simT);
+        simT += dt;
+        acc -= dt;
+        guard++;
+      }
+      paint();
+      if (P.A.t10 !== null && P.B.t10 !== null) {
+        running = false;
+        goBtn.textContent = "Slipp begge";
+        conclude();
+      }
+    } else {
+      last = 0;
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- wiring ---------------- */
+
+  ["A", "B"].forEach(function (k) {
+    ["L", "deg", "m"].forEach(function (f) {
+      el[k][f].addEventListener("input", function () {
+        readControls();
+        resetSim();
+      });
+    });
+  });
+
+  goBtn.addEventListener("click", function () {
+    if (P.A.t10 !== null && P.B.t10 !== null) resetSim();
+    running = !running;
+    last = 0;
+    acc = 0;
+    goBtn.textContent = running ? "Pause" : "Fortsett";
+  });
+
+  document.getElementById("reset").addEventListener("click", resetSim);
+
+  Array.prototype.forEach.call(document.querySelectorAll(".speed"), function (btn) {
+    btn.addEventListener("click", function () {
+      speed = parseFloat(btn.dataset.speed);
+      Array.prototype.forEach.call(document.querySelectorAll(".speed"), function (o) {
+        o.setAttribute("aria-pressed", String(o === btn));
+      });
+    });
+  });
+
+  var PRESETS = {
+    masse:  { A: [60, 20, 500], B: [60, 20, 50] },
+    vinkel: { A: [60, 90, 200], B: [60, 45, 200] },
+    lengde: { A: [30, 20, 200], B: [120, 20, 200] },
+    likt:   { A: [60, 20, 200], B: [60, 20, 200] }
+  };
+
+  document.getElementById("presets").addEventListener("click", function (ev) {
+    var btn = ev.target.closest("[data-preset]");
+    if (!btn) return;
+    var p = PRESETS[btn.dataset.preset];
+    ["A", "B"].forEach(function (k) {
+      el[k].L.value = p[k][0];
+      el[k].deg.value = p[k][1];
+      el[k].m.value = p[k][2];
+    });
+    readControls();
+    resetSim();
+  });
+
+  /* ---------------- prediction ---------------- */
+
+  var pred = state.pred || {};
+  Array.prototype.forEach.call(document.querySelectorAll(".choice"), function (grp) {
+    var q = grp.dataset.q;
+    Array.prototype.forEach.call(grp.querySelectorAll("button"), function (btn) {
+      if (pred[q] === btn.dataset.v) btn.setAttribute("aria-pressed", "true");
+      btn.addEventListener("click", function () {
+        pred[q] = btn.dataset.v;
+        Array.prototype.forEach.call(grp.querySelectorAll("button"), function (o) {
+          o.setAttribute("aria-pressed", String(o === btn));
+        });
+        state.pred = pred;
+        save(state);
+      });
+    });
+  });
+
+  /* ---------------- table ---------------- */
+
+  var DEFAULT_ROWS = [
+    "Tung kule (60 cm, 20°)",
+    "Lett kule (60 cm, 20°)",
+    "Utfall 90° (60 cm)",
+    "Utfall 45° (60 cm)",
+    "Kort tråd, 30 cm",
+    "Lang tråd, 120 cm"
+  ];
+
+  var rows = state.rows;
+  if (!Array.isArray(rows) || !rows.length) {
+    rows = DEFAULT_ROWS.map(function (n) { return { navn: n, v: ["", "", "", "", ""] }; });
+  }
+
+  var tbody = document.getElementById("rows");
+
+  function calc(row) {
+    var vals = row.v
+      .map(function (s) { return parseFloat(String(s).replace(",", ".")); })
+      .filter(function (n) { return isFinite(n) && n > 0; });
+    if (!vals.length) return null;
+    var sum = vals.reduce(function (a, b) { return a + b; }, 0);
+    return sum / vals.length;
+  }
+
+  function refreshRow(tr, row) {
+    var mean = calc(row);
+    tr.querySelector(".calc--mean").textContent = mean === null ? "–" : nb(mean, 2) + " s";
+    tr.querySelector(".calc--t").textContent = mean === null ? "–" : nb(mean / 10, 3) + " s";
+  }
+
+  function render() {
+    tbody.textContent = "";
+    rows.forEach(function (row, i) {
+      var tr = document.createElement("tr");
+
+      var tdN = document.createElement("td");
+      tdN.className = "name";
+      var inN = document.createElement("input");
+      inN.type = "text";
+      inN.value = row.navn;
+      inN.setAttribute("aria-label", "Navn på oppsett " + (i + 1));
+      inN.addEventListener("input", function () {
+        row.navn = inN.value;
+        state.rows = rows;
+        save(state);
+      });
+      tdN.appendChild(inN);
+      tr.appendChild(tdN);
+
+      for (var j = 0; j < 5; j++) {
+        (function (j) {
+          var td = document.createElement("td");
+          td.className = "num";
+          var inp = document.createElement("input");
+          inp.type = "text";
+          inp.inputMode = "decimal";
+          inp.value = row.v[j];
+          inp.placeholder = "s";
+          inp.setAttribute("aria-label", "Måling " + (j + 1) + " for " + row.navn);
+          inp.addEventListener("input", function () {
+            row.v[j] = inp.value;
+            refreshRow(tr, row);
+            state.rows = rows;
+            save(state);
+          });
+          td.appendChild(inp);
+          tr.appendChild(td);
+        })(j);
+      }
+
+      var tdM = document.createElement("td");
+      tdM.className = "calc calc--mean";
+      tr.appendChild(tdM);
+
+      var tdT = document.createElement("td");
+      tdT.className = "calc calc--t";
+      tr.appendChild(tdT);
+
+      tbody.appendChild(tr);
+      refreshRow(tr, row);
+    });
+  }
+
+  document.getElementById("addrow").addEventListener("click", function () {
+    rows.push({ navn: "Nytt oppsett", v: ["", "", "", "", ""] });
+    state.rows = rows;
+    save(state);
+    render();
+  });
+
+  document.getElementById("clear").addEventListener("click", function () {
+    rows = DEFAULT_ROWS.map(function (n) { return { navn: n, v: ["", "", "", "", ""] }; });
+    state.rows = rows;
+    save(state);
+    render();
+  });
+
+  /* ---------------- boot ---------------- */
+
+  render();
+  readControls();
+  resetSim();
+  sizeCanvas();
+
+  window.addEventListener("resize", sizeCanvas);
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", function () { readColors(); draw(); });
+  }
+  new MutationObserver(function () { readColors(); draw(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

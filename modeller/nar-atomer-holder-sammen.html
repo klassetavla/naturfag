@@ -1,0 +1,838 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Når atomer holder sammen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+<style>
+/* Layout: a cinema-style player on a dark lab-slate page; teacher notes underneath. Deliberately single dark look (it is a video). */
+:root{
+  color-scheme:dark;
+  --bg:#0a1220; --stage:#0f1b30; --panel:#15243f; --panel2:#1c2e4f; --line:#2f4670; --ring:#46659a;
+  --fg:#eef3fa; --muted:#a3b3cb; --scrim:rgba(6,12,24,.84);
+  --electron:#5fd4ff; --amber:#ffc85a; --proton:#ff7f5c; --neutron:#cdbfa6;
+  --h:#eef3fa; --o:#ff6b6b; --c:#9aa5b8; --ne:#f29bbf; --na:#b99bff; --cl:#5fd896; --cu:#e3955b; --bad:#ff5f6d;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:16px;line-height:1.5}
+.page{max-width:1180px;margin:0 auto;padding-block:28px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.top .kicker,.kicker{font:700 13px/1.2 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.top h1{font:800 clamp(30px,5vw,52px)/1.05 var(--display);margin:6px 0 10px;text-wrap:balance}
+.top p{margin:0;color:var(--muted);max-width:68ch}
+
+/* Player */
+.player{display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.viewport{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:var(--stage);box-shadow:0 0 0 1px var(--line);cursor:pointer;max-width:100%}
+.stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;background-color:var(--stage);background-image:radial-gradient(circle at 1px 1px,rgba(120,150,200,.12) 1.6px,transparent 0);background-size:40px 40px;overflow:hidden}
+#svg{position:absolute;inset:0;width:1600px;height:900px}
+#layer,#overlay{transition:opacity .45s ease}
+#overlay{position:absolute;inset:0;pointer-events:none}
+#overlay > *{position:absolute}
+.pose{transition:transform 1.15s cubic-bezier(.45,0,.2,1),opacity .75s ease}
+.stage svg .pose{transform-box:view-box;transform-origin:0 0}
+.noanim .pose,.noanim #layer,.noanim #overlay{transition:none!important}
+.spin{animation:spin 24s linear infinite;transform-box:view-box;transform-origin:0 0}
+.float{animation:float 7s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{50%{transform:translateY(-14px)}}
+.paused .spin,.paused .float{animation-play-state:paused}
+
+/* SVG vocabulary */
+.ring{fill:none;stroke:var(--ring);stroke-width:3;stroke-dasharray:1 11;stroke-linecap:round}
+.hi{fill:none;stroke:var(--amber);stroke-width:5}
+.hi.dash{stroke-dasharray:14 10}
+.e{fill:var(--electron);filter:url(#glow)}
+.nuc{stroke:var(--stage);stroke-width:3}
+.nucsym{fill:var(--stage);font-family:var(--display);font-weight:800;text-anchor:middle;dominant-baseline:central}
+.pr{fill:var(--proton);stroke:var(--stage);stroke-width:2}
+.nt{fill:var(--neutron);stroke:var(--stage);stroke-width:2}
+.psym{fill:var(--stage);font:700 17px var(--body);text-anchor:middle;dominant-baseline:central}
+.lbl{fill:var(--fg);font:400 30px var(--body);text-anchor:middle;dominant-baseline:central}
+.lbl.mut{fill:var(--muted)}
+.lbl.big{font:800 70px var(--display)}
+.lbl.mid{font:700 44px var(--display)}
+.lbl.amb{fill:var(--amber);font-weight:700}
+.lbl.l{text-anchor:start}
+.bond{stroke:var(--muted);stroke-width:7;stroke-linecap:round}
+.ball{stroke:var(--stage);stroke-width:3}
+.ballsym{fill:var(--stage);font-family:var(--display);font-weight:800;text-anchor:middle;dominant-baseline:central}
+.na{fill:var(--na)}.cl{fill:var(--cl)}.cu{fill:var(--cu)}
+.ionsym{fill:var(--stage);font-family:var(--display);font-weight:800;text-anchor:middle;dominant-baseline:central}
+.arrow{stroke:var(--amber);stroke-width:5;fill:none}
+.box{fill:none;stroke:var(--amber);stroke-width:4;stroke-dasharray:16 10}
+.pillbg{fill:var(--panel);stroke:var(--amber);stroke-width:2}
+.cross{stroke:var(--bad);stroke-width:9;stroke-linecap:round}
+.sea{fill:rgba(95,212,255,.08);stroke:rgba(95,212,255,.35);stroke-width:2}
+.badge-c{fill:var(--fg);stroke:var(--stage);stroke-width:3}
+
+/* Overlay HTML (stage px) */
+.chip{left:44px;top:34px;display:flex;align-items:center;gap:14px;font:700 28px/1 var(--display);background:var(--panel);padding:12px 22px 12px 12px;border-radius:999px;box-shadow:0 0 0 1px var(--line)}
+.chip .n{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--amber);color:var(--stage);font-size:24px}
+.chip .sub{font:400 22px var(--body);color:var(--muted)}
+.titlecard{left:200px;top:200px;width:1200px;text-align:center}
+.titlecard .kicker{font-size:26px}
+.titlecard h2{font:800 118px/0.98 var(--display);margin:18px 0 22px;letter-spacing:-.01em}
+.titlecard p{font:400 38px/1.3 var(--body);color:var(--muted);margin:0}
+.side h3{font:800 66px/1 var(--display);margin:10px 0 26px}
+.side .kicker{font-size:22px}
+.side .sub{font:400 34px var(--body);color:var(--muted);margin:-10px 0 24px}
+.facts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
+.facts li{display:flex;gap:18px;align-items:center;font:400 32px/1.25 var(--body)}
+.sw{flex:none;display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;font:800 26px/1 var(--display);color:var(--stage)}
+.sw.e{background:var(--electron)}
+.sw.rg{border:4px solid var(--amber);width:36px;height:36px}
+.bigfact{margin-top:30px;font:800 120px/1 var(--display);color:var(--amber);display:flex;align-items:baseline;gap:18px}
+.bigfact small{font:700 40px var(--body);color:var(--fg)}
+.note{font:400 22px var(--body);color:var(--muted)}
+.badge{display:inline-block;margin:0 0 16px;padding:12px 22px;border-radius:12px;font:700 32px/1.2 var(--body);background:var(--panel2);box-shadow:0 0 0 2px var(--amber);color:var(--fg)}
+.rule{margin-top:10px;padding:22px 26px;border-radius:16px;background:var(--panel);font:400 30px/1.4 var(--body)}
+.rule b{color:var(--amber)}
+.ways{left:110px;top:170px;width:1380px;display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+.way{background:var(--panel);border-radius:22px;padding:26px 28px 30px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;box-shadow:0 0 0 1px var(--line)}
+.way svg{width:260px;height:150px}
+.way .wt{font:400 32px/1.25 var(--body);color:var(--muted)}
+.way .wn{font:800 44px/1.1 var(--display)}
+.defcard{left:230px;top:110px;width:1140px;text-align:center;background:var(--panel);border-radius:20px;padding:24px 34px;font:400 38px/1.3 var(--body);box-shadow:0 0 0 2px var(--amber)}
+.defcard b{color:var(--amber)}
+.warn{left:300px;top:250px;width:1000px;background:var(--panel2);border-radius:22px;padding:34px 40px;text-align:center;box-shadow:0 0 0 2px var(--bad)}
+.warn h4{font:800 50px/1.1 var(--display);margin:0 0 18px;text-wrap:balance}
+.warn p{font:400 34px/1.35 var(--body);margin:0;color:var(--muted)}
+.legend{display:flex;gap:30px;align-items:center;font:400 28px var(--body);background:var(--panel);padding:12px 22px;border-radius:14px}
+.legend span{display:flex;gap:12px;align-items:center}
+.fbox{left:1300px;top:300px;width:260px;background:var(--panel);border-radius:18px;padding:22px;text-align:center}
+.fbox .f{font:800 64px/1 var(--display)}
+.fbox .r{font:800 48px/1.2 var(--display);color:var(--amber);margin:6px 0}
+.fbox p{font:400 24px/1.3 var(--body);color:var(--muted);margin:0}
+.sum{left:90px;top:118px;width:1420px}
+.sum .g{display:grid;grid-template-columns:270px repeat(3,1fr);gap:8px}
+.sum .g > div{padding:16px 20px;border-radius:12px;font:400 30px/1.25 var(--body);transition:opacity .5s,background-color .5s,box-shadow .5s;background:var(--panel)}
+.sum .g > .hd{font:800 36px/1.1 var(--display);background:var(--panel2)}
+.sum .g > .rh{background:transparent;color:var(--muted);font-size:26px;display:flex;align-items:center}
+.sum .g > .blank{background:transparent}
+.sum[data-on] .c1,.sum[data-on] .c2,.sum[data-on] .c3{opacity:.3}
+.sum[data-on="1"] .c1,.sum[data-on="2"] .c2,.sum[data-on="3"] .c3{opacity:1;box-shadow:inset 0 0 0 3px var(--amber)}
+.callout{left:250px;top:580px;width:1100px;text-align:center;font:400 36px/1.3 var(--body);background:var(--panel2);border-radius:18px;padding:22px 30px;box-shadow:0 0 0 2px var(--amber)}
+.callout b{color:var(--amber)}
+.qcard{left:220px;top:140px;width:1160px;background:var(--panel);border-radius:24px;padding:40px 48px 44px;box-shadow:0 0 0 1px var(--line)}
+.qcard .kicker{font-size:22px}
+.qcard h3{font:800 62px/1.1 var(--display);margin:14px 0 30px;text-wrap:balance}
+.qcard .stack{position:relative;min-height:170px}
+.qcard .think,.qcard .ans{position:absolute;left:0;right:0;top:0}
+.think{display:flex;align-items:center;gap:26px;font:400 36px var(--body);color:var(--muted)}
+.think .ring2{position:relative;width:120px;height:120px}
+.think .ring2 svg{width:120px;height:120px;transform:rotate(-90deg)}
+.think .trk{fill:none;stroke:var(--line);stroke-width:8}
+.think .arc{fill:none;stroke:var(--amber);stroke-width:8;stroke-linecap:round;stroke-dasharray:276.5;stroke-dashoffset:0}
+.think .cd{position:absolute;inset:0;display:grid;place-items:center;font:800 52px var(--display);color:var(--fg)}
+.ans{font:400 40px/1.35 var(--body);background:var(--panel2);border-radius:16px;padding:24px 30px;box-shadow:inset 0 0 0 2px var(--amber)}
+.ans b{color:var(--amber);font-family:var(--display)}
+.cap{position:absolute;left:70px;right:70px;bottom:30px;display:flex;justify-content:center;pointer-events:none}
+.cap span{background:var(--scrim);color:var(--fg);font:400 38px/1.32 var(--body);padding:14px 28px;border-radius:14px;text-align:center;text-wrap:balance;max-width:1360px}
+.cap span:empty{display:none}
+.nocap .cap{display:none}
+sub,sup{font-size:.68em;line-height:0}
+
+/* Big play */
+.bigplay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(6,12,24,.38);border:0;padding:0;color:var(--fg);cursor:pointer;font:inherit}
+.bigplay .inner{display:flex;align-items:center;gap:16px;background:var(--amber);color:var(--stage);padding:14px 26px 14px 16px;border-radius:999px;font:800 clamp(16px,2.4vw,26px)/1 var(--display);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.bigplay .inner svg{width:clamp(28px,4vw,44px);height:clamp(28px,4vw,44px);fill:currentColor}
+.bigplay .inner small{font:400 clamp(12px,1.6vw,17px) var(--body);opacity:.75}
+.bigplay:focus-visible .inner{outline:3px solid var(--fg);outline-offset:4px}
+
+/* Controls */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ib,.tg{appearance:none;border:0;background:var(--panel);color:var(--fg);border-radius:10px;height:42px;cursor:pointer;font:700 15px var(--body);box-shadow:0 0 0 1px var(--line)}
+.ib{width:42px;display:grid;place-items:center}
+.ib svg{width:22px;height:22px;fill:currentColor}
+.ib.main{background:var(--amber);color:var(--stage);box-shadow:none}
+.tg{padding:0 14px}
+.tg[aria-pressed="true"]{background:var(--panel2);box-shadow:0 0 0 2px var(--amber)}
+.tg:disabled{opacity:.45;cursor:not-allowed}
+.ib:focus-visible,.tg:focus-visible,.seg:focus-visible,.chapters button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.segs{flex:1 1 260px;display:flex;gap:4px;height:42px;align-items:center;min-width:0}
+.seg{appearance:none;border:0;padding:0;height:10px;border-radius:5px;background:var(--line);position:relative;overflow:hidden;cursor:pointer;min-width:6px}
+.seg i{position:absolute;inset:0 auto 0 0;width:0;background:var(--amber)}
+.nowrow{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;color:var(--muted);font-size:15px}
+.nowrow b{color:var(--fg)}
+.chapters{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.chapters button{appearance:none;border:0;background:transparent;color:var(--muted);font:400 15px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer;box-shadow:0 0 0 1px var(--line)}
+.chapters button[aria-current="true"]{color:var(--stage);background:var(--amber);box-shadow:none;font-weight:700}
+.chapters .num{font-variant-numeric:tabular-nums;margin-right:6px;opacity:.8}
+
+.player:fullscreen{justify-content:center;padding:12px;background:var(--bg)}
+.player:fullscreen .viewport{width:min(100%,calc((100vh - 120px) * 16 / 9));margin:0 auto}
+.player:fullscreen .chapters,.player:fullscreen .nowrow{display:none}
+
+/* Notes */
+.notes{background:var(--panel);border-radius:16px;padding:22px clamp(16px,3vw,30px) 26px;box-shadow:0 0 0 1px var(--line)}
+.notes h2{font:800 26px/1.1 var(--display);margin:4px 0 4px}
+.notes > p{color:var(--muted);margin:0 0 12px;max-width:70ch}
+.notes ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:76ch}
+.notes li::marker{color:var(--amber)}
+
+@media (prefers-reduced-motion: reduce){
+  .spin,.float{animation:none}
+  .pose{transition-duration:.35s,.35s}
+}
+</style>
+
+<main class="page">
+  <header class="top">
+    <div class="kicker">Naturfag · 8. trinn · Kjemi</div>
+    <h1>Når atomer holder sammen</h1>
+    <p>Animert forklaring av atomer, molekyler og de tre bindingstypene kovalent binding, ionebinding og metallbinding. Omtrent fem minutter, delt i elleve korte kapitler.</p>
+  </header>
+
+  <section class="player" id="player" aria-label="Videospiller">
+    <div class="viewport" id="viewport">
+      <div class="stage paused" id="stage">
+        <svg id="svg" viewBox="0 0 1600 900" aria-hidden="true">
+          <defs>
+            <filter id="glow" x="-150%" y="-150%" width="400%" height="400%">
+              <feGaussianBlur stdDeviation="5" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <marker id="arrA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#ffc85a"/>
+            </marker>
+          </defs>
+          <g id="layer"></g>
+        </svg>
+        <div id="overlay"></div>
+        <div class="cap" aria-live="polite"><span id="capText"></span></div>
+      </div>
+      <button class="bigplay" id="bigplay" aria-label="Spill av">
+        <span class="inner"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span id="bigLabel">Spill av</span><small>ca. 5 min</small></span>
+      </button>
+    </div>
+
+    <div class="bar">
+      <button class="ib" id="bPrev" aria-label="Forrige kapittel"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button class="ib main" id="bPlay" aria-label="Spill av"><svg viewBox="0 0 24 24"><path id="playPath" d="M8 5v14l11-7z"/></svg></button>
+      <button class="ib" id="bNext" aria-label="Neste kapittel"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+      <div class="segs" id="segs"></div>
+      <button class="tg" id="bCap" aria-pressed="true">Tekst</button>
+      <button class="tg" id="bNarr" aria-pressed="false">Opplesning</button>
+      <button class="ib" id="bFs" aria-label="Fullskjerm"><svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3zm10-5h6v5h-2V6h-4zM4 15h2v3h3v2H4zm14 3v-3h2v5h-5v-2z"/></svg></button>
+    </div>
+    <div class="nowrow"><span id="chapLabel"></span><span>Mellomrom: spill/pause · ← →: forrige/neste kapittel</span></div>
+    <ol class="chapters" id="chapters"></ol>
+  </section>
+
+  <section class="notes">
+    <div class="kicker">For læreren</div>
+    <h2>Forenklinger i videoen</h2>
+    <p>Videoen er laget for å unngå påstander som må læres om senere. Disse forenklingene er gjort med vilje:</p>
+    <ul>
+      <li>Atomene vises med skallmodellen (Bohrs atommodell). Elektroner går ikke i faste baner, men modellen er godt egnet til å forklare bindinger på dette nivået.</li>
+      <li>«Fullt ytterste skall» (oktettregelen) er en tommelfingerregel. Den fungerer godt for de lette grunnstoffene, men har unntak.</li>
+      <li>Ordet «typisk» står med vilje ved kovalent binding og ionebinding. Grensen mellom dem er glidende og avhenger av forskjellen i elektronegativitet.</li>
+      <li>Kovalente nettverk som diamant og kvarts (SiO₂) er ikke med. De har kovalente bindinger, men danner ikke avgrensede molekyler.</li>
+      <li>Elektronoverføringen fra natrium til klor vises som ett trinn. Det er tiltrekningen i iongitteret som gjør saltet stabilt.</li>
+      <li>Iongitteret vises som et utsnitt i to dimensjoner. I en ekte saltkrystall er hvert ion omgitt av seks ioner med motsatt ladning. Størrelsesforholdet mellom Na⁺ og Cl⁻ er omtrent riktig.</li>
+      <li>Metallbindingen er vist med elektronhavmodellen.</li>
+    </ul>
+    <p style="margin-top:14px">Opplesningen bruker en norsk stemme i nettleseren hvis den finnes. Slå av «Opplesning» hvis du vil forklare selv, og slå av «Tekst» hvis elevene skal svare muntlig på spørsmålene til slutt.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+const NS = 'http://www.w3.org/2000/svg';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function S(tag, a = {}, p) { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+function chemH(s) { return s.replace(/_(\d+)/g, '<sub>$1</sub>').replace(/\^([+−])/g, '<sup>$1</sup>'); }
+function plain(s) { return s.replace(/<[^>]+>/g, '').replace(/[_^]/g, ''); }
+// SVG text with _2 (subscript) and ^+ (superscript) markers
+function T(p, x, y, s, a = {}) {
+  const t = S('text', Object.assign({ x, y }, a), p);
+  let off = 0; const re = /_(\d+)|\^([+−])|([^_^]+)/g; let m;
+  while ((m = re.exec(s))) {
+    if (m[3]) { const sp = S('tspan', {}, t); if (off) { sp.setAttribute('dy', (-off).toFixed(3) + 'em'); off = 0; } sp.textContent = m[3]; }
+    else { const sub = !!m[1]; const target = sub ? 0.245 : -0.42; const sp = S('tspan', { 'font-size': '0.7em' }, t); sp.setAttribute('dy', ((target - off) / 0.7).toFixed(3) + 'em'); off = target; sp.textContent = sub ? m[1] : m[2]; }
+  }
+  return t;
+}
+function polar(cx, cy, r, deg) { const t = deg * Math.PI / 180; return [cx + r * Math.cos(t), cy + r * Math.sin(t)]; }
+function ringPts(r, n, start = -90) { return Array.from({ length: n }, (_, k) => polar(0, 0, r, start + k * 360 / n)); }
+
+let posed = [];
+function pose(el, map) { el.classList.add('pose'); el._p = map; posed.push(el); return el; }
+function applyPoses(n) {
+  for (const el of posed) {
+    const ks = Object.keys(el._p).map(Number).sort((a, b) => a - b);
+    const s = { x: 0, y: 0, s: 1, o: 1 }; Object.assign(s, el._p[ks[0]]);
+    for (const k of ks) if (k <= n) Object.assign(s, el._p[k]);
+    el.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.s})`;
+    el.style.opacity = s.o;
+  }
+}
+function html(O, str) { O.insertAdjacentHTML('beforeend', str); return O.lastElementChild; }
+
+const NUC = { H: 'var(--h)', O: 'var(--o)', Ne: 'var(--ne)', Na: 'var(--na)', Cl: 'var(--cl)', Cu: 'var(--cu)' };
+function atom(p, { sym, nr = 30, rings = [], e = [] } = {}) {
+  const g = S('g', {}, p);
+  const rs = rings.map(r => S('circle', { r, class: 'ring' }, g));
+  S('circle', { r: nr, class: 'nuc', style: `fill:${NUC[sym]}` }, g);
+  T(g, 0, 1, sym, { class: 'nucsym', style: `font-size:${Math.round(nr * 0.9)}px` });
+  e.forEach((n, i) => {
+    if (!n) return;
+    const pts = Array.isArray(n) ? n.map(d => polar(0, 0, rings[i], d)) : ringPts(rings[i], n);
+    pts.forEach(([x, y]) => S('circle', { cx: x, cy: y, r: 11, class: 'e' }, g));
+  });
+  return { g, rs };
+}
+function electron(p) { return S('circle', { r: 11, class: 'e' }, p); }
+function nucleus(p, np, nn) {
+  const g = S('g', {}, p); const N = np + nn; const pts = [];
+  for (let i = 0; i < N; i++) { const r = 12.8 * Math.sqrt(i + 0.5), a = i * 137.508 * Math.PI / 180; pts.push([r * Math.cos(a), r * Math.sin(a), i]); }
+  pts.reverse().forEach(([x, y, i]) => { const isP = i % 2 === 0; S('circle', { cx: x, cy: y, r: 13, class: isP ? 'pr' : 'nt' }, g); if (isP) T(g, x, y + 1, '+', { class: 'psym' }); });
+  return g;
+}
+const AT = { H: { r: 20, c: 'var(--h)' }, O: { r: 30, c: 'var(--o)' }, C: { r: 30, c: 'var(--c)' } };
+const MOLS = {
+  H2: { a: [['H', -32, 0], ['H', 32, 0]], b: [[0, 1, 1]] },
+  O2: { a: [['O', -42, 0], ['O', 42, 0]], b: [[0, 1, 2]] },
+  H2O: { a: [['O', 0, -18], ['H', -55, 25], ['H', 55, 25]], b: [[0, 1, 1], [0, 2, 1]] },
+  CO2: { a: [['O', -82, 0], ['C', 0, 0], ['O', 82, 0]], b: [[0, 1, 2], [1, 2, 2]] },
+  CH4: { a: [['C', 0, 0], ['H', 0, -70], ['H', 70, 0], ['H', 0, 70], ['H', -70, 0]], b: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] }
+};
+function ballstick(p, m, k = 1) {
+  const g = S('g', {}, p);
+  for (const [i, j, o] of m.b) {
+    const [, x1, y1] = m.a[i], [, x2, y2] = m.a[j]; const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+    (o === 1 ? [0] : [-8, 8]).forEach(d => S('line', { x1: (x1 + nx * d) * k, y1: (y1 + ny * d) * k, x2: (x2 + nx * d) * k, y2: (y2 + ny * d) * k, class: 'bond' }, g));
+  }
+  for (const [el, x, y] of m.a) {
+    const a = AT[el]; S('circle', { cx: x * k, cy: y * k, r: a.r * k, class: 'ball', style: `fill:${a.c}` }, g);
+    T(g, x * k, y * k + 1, el, { class: 'ballsym', style: `font-size:${Math.round(a.r * k * 1.05)}px` });
+  }
+  return g;
+}
+
+/* ================= SCENES ================= */
+const scenes = [];
+
+// 0 Intro
+scenes.push({
+  title: 'Intro',
+  steps: [
+    { t: 'Alt rundt deg er bygd opp av atomer.' },
+    { t: 'Men atomene er sjelden alene. De er bundet til andre atomer.' },
+    { t: 'I denne videoen ser vi på tre måter atomer kan bindes sammen på, og hva et molekyl egentlig er.' }
+  ],
+  build(L, O) {
+    [['H2O', 230, 190], ['CO2', 1350, 170], ['CH4', 1400, 560], ['O2', 230, 580], ['H2', 800, 660], ['H2O', 1130, 690]].forEach(([m, x, y], i) => {
+      const w = pose(S('g', {}, L), { '-1': { x, y, o: 0 }, 0: { o: .35 }, 1: { o: .7 } });
+      const f = S('g', { class: 'float', style: `animation-delay:${-i * 1.3}s` }, w);
+      ballstick(f, MOLS[m], 0.9);
+    });
+    pose(html(O, `<div class="titlecard"><div class="kicker">Naturfag · 8. trinn</div><h2>Når atomer<br>holder sammen</h2><p>Atomer, molekyler og tre typer kjemisk binding</p></div>`), { '-1': { o: 0, y: 24 }, 0: { o: 1, y: 0 } });
+  }
+});
+
+// 1 Atomet
+scenes.push({
+  title: 'Atomet', chip: 'Atomet',
+  steps: [
+    { t: 'Her er en forenklet modell av et oksygenatom.' },
+    { t: 'I midten er kjernen. Den inneholder protoner, som er positivt ladd, og nøytroner, som ikke har ladning.' },
+    { t: 'Rundt kjernen er elektronene. De er negativt ladd og befinner seg i skall.' },
+    { t: 'Elektronene i det ytterste skallet kalles ytterelektroner. Det er de som bestemmer hvordan atomet bindes til andre atomer.' },
+    { t: 'Oksygen har seks ytterelektroner.' }
+  ],
+  build(L, O) {
+    const A = pose(S('g', {}, L), { '-1': { x: 520, y: 390, s: .85, o: 0 }, 0: { s: 1, o: 1 } });
+    pose(S('circle', { r: 210, class: 'hi' }, A), { 0: { o: 0 }, 3: { o: 1 } });
+    const inner = S('g', {}, A), outer = S('g', {}, A);
+    S('circle', { r: 120, class: 'ring' }, inner); S('circle', { r: 210, class: 'ring' }, outer);
+    const si = S('g', { class: 'spin', style: 'animation-duration:14s' }, inner);
+    ringPts(120, 2).forEach(([x, y]) => S('circle', { cx: x, cy: y, r: 11, class: 'e' }, si));
+    const so = S('g', { class: 'spin', style: 'animation-duration:30s' }, outer);
+    ringPts(210, 6).forEach(([x, y]) => S('circle', { cx: x, cy: y, r: 11, class: 'e' }, so));
+    const nuc = nucleus(A, 8, 8);
+    pose(S('circle', { r: 76, class: 'hi dash' }, A), { 0: { o: 0 }, 1: { o: 1 }, 2: { o: 0 } });
+    pose(inner, { 0: { o: 1 }, 1: { o: .2 }, 2: { o: 1 }, 3: { o: .3 } });
+    pose(outer, { 0: { o: 1 }, 1: { o: .2 }, 2: { o: 1 } });
+    pose(nuc, { 0: { o: 1 }, 2: { o: .4 } });
+    const side = html(O, `<div class="side" style="left:900px;top:150px;width:640px">
+      <div class="kicker">Grunnstoff nr. 8</div><h3>Oksygen, O</h3>
+      <ul class="facts">
+        <li class="f1"><span class="sw" style="background:var(--proton)">+</span><span class="sw" style="background:var(--neutron)"></span><span><b>8 protoner</b> og <b>8 nøytroner</b> i kjernen</span></li>
+        <li class="f2"><span class="sw e">−</span><span><b>8 elektroner</b> i to skall: 2 + 6</span></li>
+        <li class="f3"><span class="sw rg"></span><span>Elektronene i ytterste skall er <b>ytterelektroner</b></span></li>
+      </ul>
+      <div class="bigfact f4">6 <small>ytterelektroner</small></div></div>`);
+    pose(side, { '-1': { o: 0, x: 30 }, 0: { o: 1, x: 0 } });
+    pose(side.querySelector('.f1'), { 0: { o: 0 }, 1: { o: 1 } });
+    pose(side.querySelector('.f2'), { 0: { o: 0 }, 2: { o: 1 } });
+    pose(side.querySelector('.f3'), { 0: { o: 0 }, 3: { o: 1 } });
+    pose(side.querySelector('.f4'), { 0: { o: 0, y: 20 }, 4: { o: 1, y: 0 } });
+    html(O, `<div class="note" style="left:48px;top:680px">Forenklet skallmodell. Ikke i riktig målestokk.</div>`);
+  }
+});
+
+// 2 Fullt skall
+scenes.push({
+  title: 'Fullt ytterste skall', chip: 'Fullt ytterste skall',
+  steps: [
+    { t: 'Edelgasser, som neon, har et fullt ytterste skall.' },
+    { t: 'Det gjør dem svært stabile. De danner nesten aldri bindinger med andre atomer.' },
+    { t: 'Andre atomer blir mer stabile hvis de får et fullt ytterste skall. For de fleste betyr det åtte elektroner. For hydrogen er to nok.' },
+    { t: 'Atomer kan bindes sammen på tre måter: ved å dele elektroner, ved å gi og ta imot elektroner, eller ved å ha elektroner felles i et metall.' }
+  ],
+  build(L, O) {
+    const ne = atom(null, { sym: 'Ne', nr: 46, rings: [100, 190], e: [0, 0] });
+    L.appendChild(ne.g);
+    S('circle', { r: 190, class: 'hi' }, ne.g).parentNode.insertBefore(ne.g.lastChild, ne.g.firstChild);
+    const s1 = S('g', { class: 'spin', style: 'animation-duration:14s' }, ne.g); ringPts(100, 2).forEach(([x, y]) => S('circle', { cx: x, cy: y, r: 11, class: 'e' }, s1));
+    const s2 = S('g', { class: 'spin', style: 'animation-duration:32s' }, ne.g); ringPts(190, 8).forEach(([x, y]) => S('circle', { cx: x, cy: y, r: 11, class: 'e' }, s2));
+    pose(ne.g, { '-1': { x: 480, y: 370, o: 0, s: .85 }, 0: { o: 1, s: 1 }, 3: { o: 0, s: .9 } });
+    const side = html(O, `<div class="side" style="left:820px;top:150px;width:720px">
+      <div class="kicker">Edelgass</div><h3>Neon, Ne</h3><p class="sub">Elektroner: 2 + 8</p>
+      <div class="badge b1">Fullt ytterste skall</div><br>
+      <div class="badge b2">Stabil: danner nesten aldri bindinger</div>
+      <div class="rule b3"><b>Tommelfingerregel:</b> Atomer blir mer stabile med fullt ytterste skall. De fleste trenger <b>8</b> elektroner ytterst. Hydrogen trenger <b>2</b>.</div></div>`);
+    pose(side, { '-1': { o: 0, x: 30 }, 0: { o: 1, x: 0 }, 3: { o: 0 } });
+    pose(side.querySelector('.b2'), { 0: { o: 0 }, 1: { o: 1 } });
+    pose(side.querySelector('.b3'), { 0: { o: 0 }, 2: { o: 1 } });
+    const ways = html(O, `<div class="ways">
+      <div class="way"><svg viewBox="0 0 260 150"></svg><div class="wt">Dele elektroner</div><div class="wn">Kovalent binding</div></div>
+      <div class="way"><svg viewBox="0 0 260 150"></svg><div class="wt">Gi og ta imot elektroner</div><div class="wn">Ionebinding</div></div>
+      <div class="way"><svg viewBox="0 0 260 150"></svg><div class="wt">Elektroner felles i metallet</div><div class="wn">Metallbinding</div></div></div>`);
+    const sv = ways.querySelectorAll('svg');
+    // kovalent icon
+    [[95, 75], [165, 75]].forEach(([x, y]) => { S('circle', { cx: x, cy: y, r: 55, class: 'ring' }, sv[0]); S('circle', { cx: x, cy: y, r: 16, style: 'fill:var(--h)' }, sv[0]); });
+    S('circle', { cx: 130, cy: 62, r: 10, class: 'e' }, sv[0]); S('circle', { cx: 130, cy: 88, r: 10, class: 'e' }, sv[0]);
+    // ione icon
+    S('circle', { cx: 65, cy: 85, r: 34, class: 'na' }, sv[1]); T(sv[1], 65, 86, '+', { class: 'ionsym', style: 'font-size:40px' });
+    S('circle', { cx: 190, cy: 85, r: 50, class: 'cl' }, sv[1]); T(sv[1], 190, 86, '−', { class: 'ionsym', style: 'font-size:48px' });
+    S('path', { d: 'M78 32 Q128 4 172 28', class: 'arrow', 'marker-end': 'url(#arrA)', style: 'stroke-width:4' }, sv[1]);
+    S('circle', { cx: 128, cy: 14, r: 9, class: 'e' }, sv[1]);
+    // metall icon
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { const x = 50 + c * 54, y = 48 + r * 56; S('circle', { cx: x, cy: y, r: 20, class: 'cu' }, sv[2]); T(sv[2], x, y + 1, '+', { class: 'ionsym', style: 'font-size:26px' }); }
+    [[76, 20], [130, 78], [182, 128], [24, 112], [236, 70], [102, 134], [158, 22], [214, 132]].forEach(([x, y]) => S('circle', { cx: x, cy: y, r: 7, class: 'e' }, sv[2]));
+    pose(ways, { 0: { o: 0, y: 30 }, 3: { o: 1, y: 0 } });
+  }
+});
+
+// 3 Kovalent: H2
+scenes.push({
+  title: 'Kovalent binding', chip: 'Kovalent binding', sub: 'typisk ikke-metall + ikke-metall',
+  steps: [
+    { t: 'Den første måten er kovalent binding. Den skjer typisk mellom ikke-metaller.' },
+    { t: 'Her er to hydrogenatomer. Hvert av dem har ett elektron.' },
+    { t: 'Når atomene kommer nær hverandre, deler de elektronene sine. Nå har begge atomene to elektroner rundt seg.' },
+    { t: 'Et slikt delt elektronpar er en kovalent binding. Vi kan tegne bindingen som en strek mellom atomene.' }
+  ],
+  build(L, O) {
+    const mk = (x0, x2) => { const a = atom(L, { sym: 'H', nr: 24, rings: [80] }); const lab = T(a.g, 0, 125, '1 elektron', { class: 'lbl mut' }); pose(lab, { 0: { o: 0 }, 1: { o: 1 }, 2: { o: 0 } }); pose(a.g, { '-1': { x: x0, y: 360, o: 0 }, 0: { o: 1 }, 2: { x: x2 } }); return a; };
+    mk(480, 740); mk(1120, 860);
+    pose(S('ellipse', { cx: 0, cy: 0, rx: 32, ry: 46, class: 'hi' }, L), { 0: { x: 800, y: 360, o: 0 }, 3: { o: 1 } });
+    pose(electron(L), { '-1': { x: 560, y: 360, o: 0 }, 0: { o: 1 }, 2: { x: 800, y: 342 } });
+    pose(electron(L), { '-1': { x: 1040, y: 360, o: 0 }, 0: { o: 1 }, 2: { x: 800, y: 378 } });
+    pose(T(L, 800, 480, 'delt elektronpar', { class: 'lbl amb' }), { 0: { o: 0 }, 3: { o: 1 } });
+    pose(T(L, 800, 600, 'H – H', { class: 'lbl big' }), { 0: { o: 0, y: 20 }, 3: { o: 1, y: 0 } });
+    pose(T(L, 800, 660, 'streken = ett delt elektronpar', { class: 'lbl mut' }), { 0: { o: 0 }, 3: { o: 1 } });
+  }
+});
+
+// 4 Vann
+scenes.push({
+  title: 'Vannmolekylet', chip: 'Kovalent binding: vann', sub: 'oksygen + hydrogen',
+  steps: [
+    { t: 'Vann er et annet eksempel. Oksygen har seks ytterelektroner og mangler to for å få fullt ytterste skall.' },
+    { t: 'Oksygen deler ett elektronpar med hvert av de to hydrogenatomene.' },
+    { t: 'Nå har oksygen åtte elektroner i ytterste skall, og hvert hydrogenatom har to.' },
+    { t: 'Atomene henger sammen i én avgrenset enhet: et vannmolekyl, H_2O.', sp: 'Atomene henger sammen i én avgrenset enhet: et vannmolekyl.' }
+  ],
+  build(L, O) {
+    const ox = 800, oy = 320, R = 110, dR = 150;
+    pose(S('rect', { x: 590, y: 180, width: 420, height: 320, rx: 40, class: 'box' }, L), { 0: { o: 0 }, 3: { o: 1 } });
+    const Og = atom(L, { sym: 'O', nr: 32, rings: [50, R], e: [[0, 180], [210, 230, 310, 330]] });
+    S('circle', { r: R + 2, class: 'hi' }, Og.g); pose(Og.g.lastChild, { 0: { o: 0 }, 2: { o: 1 }, 3: { o: 0 } });
+    pose(Og.g, { '-1': { x: ox, y: oy, o: 0 }, 0: { o: 1 } });
+    pose(T(L, ox, 160, 'O: 6 ytterelektroner', { class: 'lbl mut' }), { 0: { o: 1 }, 1: { o: 0 } });
+    [[37.75, 1270], [142.25, 330]].forEach(([dir, sx]) => {
+      const [hx, hy] = polar(ox, oy, dR, dir);
+      const h = atom(L, { sym: 'H', nr: 22, rings: [62] });
+      S('circle', { r: 64, class: 'hi' }, h.g); pose(h.g.lastChild, { 0: { o: 0 }, 2: { o: 1 }, 3: { o: 0 } });
+      pose(T(h.g, 0, 100, 'H: 1', { class: 'lbl mut' }), { 0: { o: 1 }, 1: { o: 0 } });
+      pose(h.g, { '-1': { x: sx, y: 430, o: 0 }, 0: { o: 1 }, 1: { x: hx, y: hy } });
+      const right = dir < 90;
+      const [ex, ey] = polar(ox, oy, 104, right ? dir + 9 : dir - 9);
+      const [oex, oey] = polar(ox, oy, 104, right ? dir - 9 : dir + 9);
+      S('circle', { cx: oex, cy: oey, r: 11, class: 'e' }, L);
+      pose(electron(L), { '-1': { x: sx + (right ? -62 : 62), y: 430, o: 0 }, 0: { o: 1 }, 1: { x: ex, y: ey } });
+    });
+    const side = html(O, `<div class="side" style="left:1110px;top:200px;width:440px"><ul class="facts">
+      <li><span class="sw" style="background:var(--o)">O</span><span>6 + 2 = <b>8</b> ytterst</span></li>
+      <li><span class="sw" style="background:var(--h)">H</span><span>1 + 1 = <b>2</b> ytterst</span></li></ul></div>`);
+    pose(side, { 0: { o: 0, x: 20 }, 2: { o: 1, x: 0 } });
+    pose(T(L, 800, 565, 'H_2O – ett vannmolekyl', { class: 'lbl mid' }), { 0: { o: 0, y: 16 }, 3: { o: 1, y: 0 } });
+  }
+});
+
+// 5 Hva er et molekyl
+scenes.push({
+  title: 'Hva er et molekyl?', chip: 'Hva er et molekyl?',
+  steps: [
+    { t: 'Et molekyl er to eller flere atomer som holdes sammen av kovalente bindinger.' },
+    { t: 'Atomene kan være av samme grunnstoff, som i hydrogengass og oksygengass, eller av ulike grunnstoffer, som i vann, karbondioksid og metan.' },
+    { t: 'Men ikke alle atomer som er bundet sammen, danner molekyler. Det ser vi med de to neste bindingstypene.' }
+  ],
+  build(L, O) {
+    pose(html(O, `<div class="defcard">Et <b>molekyl</b> er to eller flere atomer som holdes sammen av <b>kovalente bindinger</b>.</div>`), { '-1': { o: 0, y: 20 }, 0: { o: 1, y: 0 }, 2: { o: .3 } });
+    const items = [['H2', 210, 'hydrogengass', 'H_2'], ['O2', 450, 'oksygengass', 'O_2'], ['H2O', 760, 'vann', 'H_2O'], ['CO2', 1080, 'karbondioksid', 'CO_2'], ['CH4', 1390, 'metan', 'CH_4']];
+    items.forEach(([m, x, name, f], i) => {
+      const g = S('g', {}, L); ballstick(g, MOLS[m]);
+      T(g, 0, 130, f, { class: 'lbl mid' }); T(g, 0, 178, name, { class: 'lbl mut' });
+      pose(g, { 0: { x, y: 390, o: 0, s: .8 }, 1: { o: 1, s: 1 }, 2: { o: .25 } });
+      g.style.transitionDelay = `${i * 90}ms`;
+    });
+    const br = (x1, x2, label) => { const g = S('g', {}, L); S('path', { d: `M${x1} 610 v14 H${x2} v-14`, class: 'arrow', style: 'stroke-width:3;stroke:var(--muted)' }, g); T(g, (x1 + x2) / 2, 660, label, { class: 'lbl' }); pose(g, { 0: { o: 0 }, 1: { o: 1 }, 2: { o: .25 } }); };
+    br(130, 530, 'Samme grunnstoff'); br(660, 1480, 'Ulike grunnstoffer');
+    pose(html(O, `<div class="warn"><h4>Ikke alt som er bundet sammen, er molekyler</h4><p>Ionebinding gir et iongitter. Metallbinding gir et metallgitter.</p></div>`), { 0: { o: 0, s: .95 }, 2: { o: 1, s: 1 } });
+  }
+});
+
+// 6 Ionebinding
+scenes.push({
+  title: 'Ionebinding', chip: 'Ionebinding', sub: 'typisk metall + ikke-metall',
+  steps: [
+    { t: 'Den andre måten er ionebinding. Den skjer typisk mellom et metall og et ikke-metall, for eksempel natrium og klor.' },
+    { t: 'Natrium har ett ytterelektron. Klor har sju.' },
+    { t: 'Natrium gir fra seg elektronet sitt til klor.' },
+    { t: 'Nå har begge fullt ytterste skall. Men de har fått elektrisk ladning: natrium er blitt et positivt natriumion, Na^+, og klor er blitt et negativt kloridion, Cl^−.', sp: 'Nå har begge fullt ytterste skall. Men de har fått elektrisk ladning. Natrium er blitt et positivt natriumion, og klor er blitt et negativt kloridion.' },
+    { t: 'Positive og negative ioner tiltrekker hverandre. Denne tiltrekningen er ionebindingen.' }
+  ],
+  build(L, O) {
+    const mk = (sym, x0, x4, e3, names, badge) => {
+      const a = atom(L, { sym, nr: 34, rings: [60, 100, 140], e: [2, 8, e3] });
+      const hi = S('circle', { r: 140, class: 'hi' }); a.g.insertBefore(hi, a.g.firstChild); pose(hi, { 0: { o: 0 }, 1: { o: 1 }, 2: { o: 0 } });
+      const g1 = S('g', {}, a.g); T(g1, 0, 190, names[0], { class: 'lbl', style: 'font-weight:700' }); T(g1, 0, 232, names[1], { class: 'lbl mut' }); pose(g1, { 0: { o: 1 }, 3: { o: 0 } });
+      const g2 = S('g', {}, a.g); T(g2, 0, 190, names[2], { class: 'lbl', style: 'font-weight:700' }); T(g2, 0, 232, names[3], { class: 'lbl mut' }); pose(g2, { 0: { o: 0 }, 3: { o: 1 } });
+      const bg = S('g', {}, a.g); S('circle', { cx: badge[0], cy: badge[1], r: 30, class: 'badge-c' }, bg); T(bg, badge[0], badge[1] + 2, badge[2], { class: 'ionsym', style: 'font-size:44px' }); pose(bg, { 0: { o: 0, s: .6 }, 3: { o: 1, s: 1 } });
+      pose(a.g, { '-1': { x: x0, y: 340, o: 0 }, 0: { o: 1 }, 4: { x: x4 } });
+      return a;
+    };
+    const na = mk('Na', 480, 600, 0, ['Natrium, Na', '2 · 8 · 1', 'Natriumion, Na^+', '2 · 8'], [78, -112, '+']);
+    pose(na.rs[2], { 0: { o: 1 }, 3: { o: 0 } });
+    mk('Cl', 1120, 1000, [-90, -45, 0, 45, 90, 135, 225], ['Klor, Cl', '2 · 8 · 7', 'Kloridion, Cl^−', '2 · 8 · 8'], [112, -112, '−']);
+    pose(electron(L), { '-1': { x: 620, y: 340, o: 0 }, 0: { o: 1 }, 2: { x: 980 }, 4: { x: 860 } });
+    pose(S('line', { x1: 712, y1: 340, x2: 846, y2: 340, class: 'arrow', 'marker-start': 'url(#arrA)', 'marker-end': 'url(#arrA)' }, L), { 0: { o: 0 }, 4: { o: 1 } });
+    pose(T(L, 780, 296, 'tiltrekning', { class: 'lbl amb' }), { 0: { o: 0 }, 4: { o: 1 } });
+  }
+});
+
+// 7 Iongitter
+scenes.push({
+  title: 'Iongitter', chip: 'Iongitter', sub: 'koksalt, NaCl',
+  steps: [
+    { t: 'Et saltkorn inneholder enormt mange slike ioner.' },
+    { t: 'Ionene ligger i et fast, regelmessig mønster som kalles et iongitter. Hvert ion tiltrekkes av ionene med motsatt ladning rundt seg.' },
+    { t: 'Derfor finnes det ingen avgrensede NaCl-molekyler. Formelen NaCl forteller bare at det er like mange natriumioner som kloridioner.', sp: 'Derfor finnes det ingen avgrensede molekyler i saltet. Formelen for natriumklorid forteller bare at det er like mange natriumioner som kloridioner.' },
+    { t: 'Salt består altså av ioner, ikke av molekyler.' }
+  ],
+  build(L, O) {
+    const cx0 = 360, cy0 = 170, d = 110;
+    const G = S('g', {}, L);
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 9; c++) {
+      const x = cx0 + c * d, y = cy0 + r * d, isNa = (c + r) % 2 === 0;
+      const g = S('g', {}, G); S('circle', { r: isNa ? 24 : 42, class: isNa ? 'na' : 'cl' }, g);
+      T(g, 0, 2, isNa ? '+' : '−', { class: 'ionsym', style: `font-size:${isNa ? 30 : 42}px` });
+      pose(g, { '-1': { x, y, o: 0, s: .5 }, 0: { o: 1, s: 1 } });
+      g.style.transitionDelay = `${(c + r) * 45}ms`;
+    }
+    const H = S('g', {}, L);
+    S('circle', { cx: 800, cy: 390, r: 34, class: 'hi' }, H);
+    [[0, -1], [1, 0], [0, 1], [-1, 0]].forEach(([ux, uy]) => {
+      S('circle', { cx: 800 + ux * d, cy: 390 + uy * d, r: 52, class: 'hi', style: 'stroke-width:3' }, H);
+      S('line', { x1: 800 + ux * 36, y1: 390 + uy * 36, x2: 800 + ux * (d - 54), y2: 390 + uy * (d - 54), class: 'arrow', style: 'stroke-width:4;stroke-dasharray:6 6' }, H);
+    });
+    pose(H, { 0: { o: 0 }, 1: { o: 1 }, 2: { o: 0 } });
+    const B = S('g', {}, L);
+    S('rect', { x: 748, y: 338, width: 214, height: 104, rx: 22, class: 'box' }, B);
+    S('rect', { x: 725, y: 274, width: 270, height: 50, rx: 25, class: 'pillbg' }, B);
+    pose(T(B, 860, 300, 'NaCl-molekyl?', { class: 'lbl', style: 'font-size:28px;font-weight:700' }), { 0: { o: 1 }, 3: { o: 0 } });
+    pose(T(B, 860, 300, 'Ikke et molekyl', { class: 'lbl', style: 'font-size:28px;font-weight:700;fill:var(--bad)' }), { 0: { o: 0 }, 3: { o: 1 } });
+    pose(B, { 0: { o: 0 }, 2: { o: 1 } });
+    const X = S('g', {}, L); S('line', { x1: 770, y1: 350, x2: 940, y2: 430, class: 'cross' }, X); S('line', { x1: 770, y1: 430, x2: 940, y2: 350, class: 'cross' }, X);
+    pose(X, { 0: { o: 0 }, 3: { o: 1 } });
+    html(O, `<div class="legend" style="left:880px;top:34px"><span><span class="sw na" style="background:var(--na);width:30px;height:30px;font-size:22px">+</span>Na<sup>+</sup> natriumion</span><span><span class="sw" style="background:var(--cl)">−</span>Cl<sup>−</sup> kloridion</span></div>`);
+    html(O, `<div class="note" style="left:48px;top:690px">Utsnitt i to dimensjoner</div>`);
+    pose(html(O, `<div class="fbox"><div class="f">NaCl</div><div class="r">1 : 1</div><p>like mange Na<sup>+</sup> som Cl<sup>−</sup></p></div>`), { 0: { o: 0, x: 20 }, 2: { o: 1, x: 0 } });
+  }
+});
+
+// 8 Metallbinding
+scenes.push({
+  title: 'Metallbinding', chip: 'Metallbinding', sub: 'i metaller, for eksempel kobber',
+  steps: [
+    { t: 'Den tredje måten er metallbinding. Den finnes i metaller, for eksempel kobber og jern.' },
+    { t: 'Metallatomene slipper ytterelektronene sine. Tilbake blir positive metallioner, som ligger tett pakket i et gitter.' },
+    { t: 'Elektronene beveger seg fritt rundt mellom ionene, som et hav av elektroner. De hører ikke til ett bestemt atom.' },
+    { t: 'De positive ionene og de negative elektronene tiltrekker hverandre. Det er dette som holder metallet sammen.' },
+    { t: 'Fordi elektronene kan bevege seg fritt, leder metaller elektrisk strøm godt. Heller ikke her finnes det molekyler.' }
+  ],
+  build(L, O) {
+    const M = this._m = { free: false, cur: false, es: [] };
+    pose(S('rect', { x: 280, y: 110, width: 1040, height: 500, rx: 40, class: 'sea' }, L), { 0: { o: 0 }, 2: { o: 1 } });
+    pose(T(L, 310, 140, 'elektronhav', { class: 'lbl l', style: 'fill:var(--electron);font-weight:700;font-size:26px' }), { 0: { o: 0 }, 2: { o: 1 } });
+    const EG = S('g');
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 8; c++) {
+      const x = 345 + c * 130, y = 165 + r * 130;
+      const g = S('g', {}, L);
+      pose(S('circle', { r: 58, class: 'ring' }, g), { 0: { o: 1 }, 1: { o: 0 } });
+      S('circle', { r: 34, class: 'cu' }, g);
+      pose(T(g, 0, 1, 'Cu', { class: 'ionsym', style: 'font-size:28px' }), { 0: { o: 1 }, 1: { o: 0 } });
+      pose(T(g, 0, 2, '+', { class: 'ionsym', style: 'font-size:40px' }), { 0: { o: 0 }, 1: { o: 1 } });
+      pose(g, { '-1': { x, y, o: 0 }, 0: { o: 1 } });
+      const e = S('circle', { cx: x + 41, cy: y - 41, r: 10, class: 'e' }, EG);
+      M.es.push({ el: e, hx: x + 41, hy: y - 41, x: x + 41, y: y - 41, vx: 0, vy: 0 });
+    }
+    L.appendChild(EG);
+    pose(S('line', { x1: 420, y1: 660, x2: 1180, y2: 660, class: 'arrow', 'marker-end': 'url(#arrA)' }, L), { 0: { o: 0 }, 4: { o: 1 } });
+    pose(T(L, 800, 704, 'elektronene kan flyte gjennom metallet: elektrisk strøm', { class: 'lbl amb', style: 'font-size:28px' }), { 0: { o: 0 }, 4: { o: 1 } });
+    pose(html(O, `<div class="legend" style="left:820px;top:34px"><span><span class="sw" style="background:var(--cu)">+</span>positive metallioner</span><span><span class="sw e">−</span>frie elektroner</span></div>`), { 0: { o: 0 }, 3: { o: 1 } });
+  },
+  onStep(n) {
+    const M = this._m; const was = M.free; M.free = n >= 1; M.cur = n >= 4;
+    if (M.free && !was) M.es.forEach(e => { const a = Math.random() * 6.283; e.vx = Math.cos(a) * 80; e.vy = Math.sin(a) * 80; });
+    if (!M.free) M.es.forEach(e => { e.x = e.hx; e.y = e.hy; e.el.setAttribute('cx', e.x); e.el.setAttribute('cy', e.y); });
+  },
+  tick(dt) {
+    const M = this._m; if (!M.free) return;
+    const sp = (M.cur ? 115 : 85) * (reduce ? .45 : 1);
+    for (const e of M.es) {
+      e.vx += (Math.random() - .5) * 500 * dt; e.vy += (Math.random() - .5) * 500 * dt;
+      if (M.cur) e.vx += 160 * dt;
+      const v = Math.hypot(e.vx, e.vy) || 1; e.vx = e.vx / v * sp; e.vy = e.vy / v * sp;
+      e.x += e.vx * dt; e.y += e.vy * dt;
+      if (e.y < 125) { e.y = 125; e.vy = Math.abs(e.vy); } if (e.y > 595) { e.y = 595; e.vy = -Math.abs(e.vy); }
+      if (M.cur) { if (e.x > 1305) e.x = 295; if (e.x < 295) e.x = 1305; }
+      else { if (e.x < 295) { e.x = 295; e.vx = Math.abs(e.vx); } if (e.x > 1305) { e.x = 1305; e.vx = -Math.abs(e.vx); } }
+      e.el.setAttribute('cx', e.x.toFixed(1)); e.el.setAttribute('cy', e.y.toFixed(1));
+    }
+  }
+});
+
+// 9 Oppsummering
+scenes.push({
+  title: 'Oppsummering', chip: 'Oppsummering',
+  steps: [
+    { t: 'La oss oppsummere.' },
+    { t: 'Ved kovalent binding deler atomene elektroner. Da dannes molekyler.' },
+    { t: 'Ved ionebinding gir ett atom elektroner til et annet. Ionene danner et iongitter.' },
+    { t: 'Ved metallbinding har atomene elektroner felles. De danner et metallgitter.' },
+    { t: 'Husk: Et molekyl er ikke bare atomer som er bundet sammen. Det er atomer som holdes sammen fordi de deler elektroner.' }
+  ],
+  build(L, O) {
+    this._t = pose(html(O, `<div class="sum"><div class="g">
+      <div class="blank"></div><div class="hd c1">Kovalent binding</div><div class="hd c2">Ionebinding</div><div class="hd c3">Metallbinding</div>
+      <div class="rh">Hvem binder seg?</div><div class="c1">Typisk ikke-metall + ikke-metall</div><div class="c2">Typisk metall + ikke-metall</div><div class="c3">Metallatomer</div>
+      <div class="rh">Elektronene</div><div class="c1">Deles i par</div><div class="c2">Gis fra ett atom til et annet</div><div class="c3">Er felles og beveger seg fritt</div>
+      <div class="rh">Dette dannes</div><div class="c1"><b>Molekyler</b></div><div class="c2"><b>Iongitter</b></div><div class="c3"><b>Metallgitter</b></div>
+      <div class="rh">Eksempel</div><div class="c1">Vann, H<sub>2</sub>O</div><div class="c2">Koksalt, NaCl</div><div class="c3">Kobber, Cu</div>
+      </div></div>`), { '-1': { o: 0, y: 20 }, 0: { o: 1, y: 0 } });
+    pose(html(O, `<div class="callout">Et <b>molekyl</b> er atomer som holdes sammen fordi de <b>deler elektroner</b>.</div>`), { 0: { o: 0, y: 20 }, 4: { o: 1, y: 0 } });
+  },
+  onStep(n) { if (n >= 1 && n <= 3) this._t.dataset.on = n; else delete this._t.dataset.on; }
+});
+
+// 10 Quiz
+const QS = [
+  ['Består koksalt, NaCl, av molekyler?', 'Består koksalt av molekyler?', '<b>Nei.</b> Koksalt består av natriumioner og kloridioner i et iongitter.'],
+  ['Er oksygengass, O<sub>2</sub>, et molekyl?', 'Er oksygengass et molekyl?', '<b>Ja.</b> De to oksygenatomene deler elektroner. De er bundet sammen med kovalente bindinger.'],
+  ['Hvorfor leder kobber elektrisk strøm?', 'Hvorfor leder kobber elektrisk strøm?', '<b>Fordi</b> elektronene i metallet kan bevege seg fritt mellom metallionene.']
+];
+scenes.push({
+  title: 'Sjekk deg selv', chip: 'Sjekk deg selv',
+  steps: QS.flatMap(([q, qs, a], i) => [
+    { t: `Spørsmål ${i + 1}: ${q}`, sp: `Spørsmål ${i + 1}. ${qs}` },
+    { t: 'Tenk deg om …', silent: true, dur: 7, think: i },
+    { t: a.replace(/<\/?b>/g, ''), }
+  ]),
+  build(L, O) {
+    this._cards = QS.map(([q, , a], i) => {
+      const c = html(O, `<div class="qcard"><div class="kicker">Spørsmål ${i + 1} av 3</div><h3>${q}</h3><div class="stack">
+        <div class="think"><div class="ring2"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" class="trk"/><circle cx="50" cy="50" r="44" class="arc"/></svg><span class="cd">7</span></div><span>Tenk deg om, eller snakk med sidemannen.</span></div>
+        <div class="ans">${a}</div></div></div>`);
+      const b = i * 3;
+      const m = { 0: { o: 0, y: 24 } }; m[b] = { o: 1, y: 0 }; if (i < 2) m[b + 3] = { o: 0, y: -24 }; if (i === 0) m['-1'] = { o: 0, y: 24 };
+      pose(c, m);
+      pose(c.querySelector('.think'), { 0: { o: 0 }, [b + 1]: { o: 1 }, [b + 2]: { o: 0 } });
+      pose(c.querySelector('.ans'), { 0: { o: 0, y: 14 }, [b + 2]: { o: 1, y: 0 } });
+      return c;
+    });
+  },
+  tick(dt, st, el, dur) {
+    const s = this.steps[st]; if (s.think == null) return;
+    const c = this._cards[s.think];
+    c.querySelector('.cd').textContent = Math.max(0, Math.ceil(dur - el));
+    c.querySelector('.arc').style.strokeDashoffset = (276.5 * Math.min(1, el / dur)).toFixed(1);
+  }
+});
+
+/* ================= ENGINE ================= */
+const viewport = document.getElementById('viewport'), stage = document.getElementById('stage');
+const layer = document.getElementById('layer'), overlay = document.getElementById('overlay');
+const capText = document.getElementById('capText'), bigplay = document.getElementById('bigplay'), bigLabel = document.getElementById('bigLabel');
+const bPlay = document.getElementById('bPlay'), playPath = document.getElementById('playPath');
+const bNarr = document.getElementById('bNarr'), bCap = document.getElementById('bCap');
+const segsEl = document.getElementById('segs'), chapEl = document.getElementById('chapters'), chapLabel = document.getElementById('chapLabel');
+const player = document.getElementById('player');
+
+let cur = 0, scn = null, step = 0, playing = false, ended = false, elapsed = 0, dur = 4, token = 0;
+let speechDone = true, endAt = 0, utterId = 0;
+const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
+let voice = null, narr = false, narrPref = null;
+try { narrPref = localStorage.getItem('atomer-narr'); } catch (e) {}
+
+new ResizeObserver(() => { stage.style.transform = `scale(${viewport.clientWidth / 1600})`; }).observe(viewport);
+
+function readDur(t) { const w = plain(t).split(/\s+/).filter(Boolean).length; return Math.max(3.4, w * 0.37 + 1.5); }
+function narrOn() { return narr && !!voice; }
+
+function goScene(i) {
+  token++; const my = token;
+  if (synth) synth.cancel();
+  cur = i; scn = scenes[i]; posed = []; step = 0; elapsed = 0;
+  layer.replaceChildren(); overlay.replaceChildren();
+  stage.classList.add('noanim');
+  layer.style.opacity = 0; overlay.style.opacity = 0;
+  if (scn.chip) html(overlay, `<div class="chip"><span class="n">${i}</span>${scn.chip}${scn.sub ? `<span class="sub">${scn.sub}</span>` : ''}</div>`);
+  scn.build(layer, overlay);
+  applyPoses(-1);
+  void stage.offsetWidth;
+  showCaption(scn.steps[0]);
+  updateChapters();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (my !== token) return;
+    stage.classList.remove('noanim');
+    layer.style.opacity = 1; overlay.style.opacity = 1;
+    setStep(0);
+  }));
+}
+function showCaption(st) { capText.innerHTML = chemH(st.t); }
+function setStep(n) {
+  step = n; elapsed = 0; const st = scn.steps[n];
+  applyPoses(n); if (scn.onStep) scn.onStep(n);
+  showCaption(st);
+  dur = st.dur || readDur(st.t);
+  speechDone = true; endAt = 0;
+  if (playing) speakStep();
+}
+function speakStep() {
+  const st = scn.steps[step];
+  if (!synth) return;
+  synth.cancel();
+  if (!narrOn() || st.silent) return;
+  const id = ++utterId;
+  const u = new SpeechSynthesisUtterance(st.sp || plain(st.t));
+  u.voice = voice; u.lang = voice.lang; u.rate = 0.95;
+  const done = () => { if (id === utterId) { speechDone = true; endAt = elapsed; } };
+  u.onend = done; u.onerror = done;
+  speechDone = false;
+  synth.speak(u);
+}
+function next() {
+  if (step < scn.steps.length - 1) setStep(step + 1);
+  else if (cur < scenes.length - 1) goScene(cur + 1);
+  else finish();
+}
+function finish() { playing = false; ended = true; if (synth) synth.cancel(); updatePlayUI(); }
+function play() {
+  if (ended) { ended = false; playing = true; goScene(0); updatePlayUI(); return; }
+  playing = true; elapsed = 0; speakStep(); updatePlayUI();
+}
+function pause() { playing = false; if (synth) synth.cancel(); utterId++; speechDone = true; updatePlayUI(); }
+function toggle() { playing ? pause() : play(); }
+function updatePlayUI() {
+  stage.classList.toggle('paused', !playing);
+  bigplay.hidden = playing;
+  bigLabel.textContent = ended ? 'Se igjen' : (cur === 0 && step === 0 ? 'Spill av' : 'Fortsett');
+  bigplay.querySelector('small').hidden = !(cur === 0 && step === 0 && !ended);
+  playPath.setAttribute('d', playing ? 'M7 5h4v14H7zM13 5h4v14h-4z' : 'M8 5v14l11-7z');
+  bPlay.setAttribute('aria-label', playing ? 'Pause' : 'Spill av');
+}
+
+let lastT = performance.now();
+function loop(t) {
+  const dt = Math.min(0.1, (t - lastT) / 1000); lastT = t;
+  if (playing && scn) {
+    elapsed += dt;
+    if (scn.tick) scn.tick(dt, step, elapsed, dur);
+    const st = scn.steps[step];
+    let ready;
+    if (narrOn() && !st.silent) ready = (speechDone && elapsed >= endAt + 0.7 && elapsed >= 2.2) || elapsed > dur * 2.2 + 6;
+    else ready = elapsed >= dur;
+    if (ready) next();
+  }
+  updateProgress();
+  requestAnimationFrame(loop);
+}
+
+// chapters + segments
+scenes.forEach((s, i) => {
+  const b = document.createElement('button'); b.className = 'seg'; b.style.flex = s.steps.length; b.title = `${i}. ${s.title}`; b.setAttribute('aria-label', `Gå til kapittel ${i}: ${s.title}`);
+  b.innerHTML = '<i></i>'; b.addEventListener('click', () => { ended = false; goScene(i); }); segsEl.appendChild(b);
+  const li = document.createElement('li'); li.innerHTML = `<button><span class="num">${i}</span>${s.title}</button>`;
+  li.firstChild.addEventListener('click', () => { ended = false; goScene(i); }); chapEl.appendChild(li);
+});
+function updateChapters() {
+  chapEl.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', i === cur ? 'true' : 'false'));
+  chapLabel.innerHTML = `Kapittel <b>${cur} av ${scenes.length - 1}</b> · ${scenes[cur].title}`;
+  updatePlayUI();
+}
+function updateProgress() {
+  const segs = segsEl.children;
+  for (let i = 0; i < segs.length; i++) {
+    let f = i < cur ? 1 : i > cur ? 0 : (step + Math.min(1, elapsed / dur)) / scenes[i].steps.length;
+    if (ended) f = 1;
+    segs[i].firstChild.style.width = (f * 100).toFixed(1) + '%';
+  }
+}
+
+// controls
+viewport.addEventListener('click', toggle);
+document.getElementById('bPrev').addEventListener('click', () => { ended = false; goScene(step > 0 || cur === 0 ? cur : cur - 1); });
+document.getElementById('bNext').addEventListener('click', () => { ended = false; if (cur < scenes.length - 1) goScene(cur + 1); });
+bPlay.addEventListener('click', toggle);
+bCap.addEventListener('click', () => { const on = bCap.getAttribute('aria-pressed') !== 'true'; bCap.setAttribute('aria-pressed', on); stage.classList.toggle('nocap', !on); });
+bNarr.addEventListener('click', () => {
+  if (!voice) return;
+  narr = !narr; bNarr.setAttribute('aria-pressed', narr);
+  try { localStorage.setItem('atomer-narr', narr ? '1' : '0'); } catch (e) {}
+  if (playing) { elapsed = 0; speakStep(); } else if (synth) synth.cancel();
+});
+document.getElementById('bFs').addEventListener('click', async () => {
+  try { if (document.fullscreenElement) await document.exitFullscreen(); else await player.requestFullscreen(); } catch (e) {}
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('button') && (e.key === ' ' || e.key === 'Enter')) return;
+  if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); }
+  else if (e.key === 'ArrowRight') { ended = false; if (cur < scenes.length - 1) goScene(cur + 1); }
+  else if (e.key === 'ArrowLeft') { ended = false; goScene(Math.max(0, cur - 1)); }
+});
+
+function pickVoice() {
+  if (!synth) { bNarr.disabled = true; bNarr.title = 'Opplesning støttes ikke i denne nettleseren'; return; }
+  const vs = synth.getVoices();
+  voice = vs.find(v => /^nb/i.test(v.lang)) || vs.find(v => /^no/i.test(v.lang)) || vs.find(v => /^nn/i.test(v.lang)) || null;
+  bNarr.disabled = !voice;
+  bNarr.title = voice ? `Norsk stemme: ${voice.name}` : 'Fant ingen norsk stemme i nettleseren';
+  if (voice) { narr = narrPref == null ? true : narrPref === '1'; }
+  bNarr.setAttribute('aria-pressed', narrOn());
+}
+if (synth) { synth.addEventListener ? synth.addEventListener('voiceschanged', pickVoice) : (synth.onvoiceschanged = pickVoice); }
+pickVoice();
+
+goScene(0);
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>

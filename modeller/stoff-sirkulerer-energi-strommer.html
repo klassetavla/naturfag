@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Stoff sirkulerer, energi strømmer</title>
+<style>
+  :root {
+    --ground: #f2f4f6;
+    --surface: #ffffff;
+    --surface-2: #e8ecef;
+    --ink: #131b22;
+    --ink-soft: #4a5865;
+    --ink-faint: #77848f;
+    --line: #d5dce1;
+    --accent: #1d5b7a;
+
+    --kin: #1f7ae0;
+    --pot: #6b4fc4;
+    --therm: #d1622a;
+
+    --ok: #2c7a52;
+    --ok-flate: #e6f2eb;
+    --no: #9c2f3f;
+    --no-flate: #f7e8ea;
+
+    --foto: #4a9d2f;
+    --foto-flate: #edf5e8;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, Palatino, "Noto Serif", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+      --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+      --line: #26313a; --accent: #6bb6d6;
+      --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+      --ok: #5cba85; --ok-flate: #14261d;
+      --no: #e3808f; --no-flate: #2a171b;
+      --foto: #7ac95a; --foto-flate: #17240f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+    --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+    --line: #26313a; --accent: #6bb6d6;
+    --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+    --ok: #5cba85; --ok-flate: #14261d;
+    --no: #e3808f; --no-flate: #2a171b;
+    --foto: #7ac95a; --foto-flate: #17240f;
+  }
+  :root[data-theme="light"] {
+    --ground: #f2f4f6; --surface: #ffffff; --surface-2: #e8ecef;
+    --ink: #131b22; --ink-soft: #4a5865; --ink-faint: #77848f;
+    --line: #d5dce1; --accent: #1d5b7a;
+    --kin: #1f7ae0; --pot: #6b4fc4; --therm: #d1622a;
+    --ok: #2c7a52; --ok-flate: #e6f2eb;
+    --no: #9c2f3f; --no-flate: #f7e8ea;
+    --foto: #4a9d2f; --foto-flate: #edf5e8;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 18px 72px; display: flex; flex-direction: column; gap: 26px; }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .11em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 650; letter-spacing: -.02em; line-height: 1.15; text-wrap: balance; }
+  .lede { color: var(--ink-soft); max-width: 66ch; font-size: 16px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  canvas { display: block; width: 100%; height: auto; border-radius: 8px; }
+
+  .controls { padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; align-items: end; }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl > label, .ctrl > .lab { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ctrl b { font-family: var(--mono); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; text-transform: none; letter-spacing: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  .segmented { display: flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+  .segmented button { flex: 1; border: 0; border-radius: 0; background: transparent; color: var(--ink-soft); font-weight: 500; padding: 8px 4px; font-size: 13px; }
+  .segmented button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+
+  button {
+    font: inherit; font-size: 14px; font-weight: 550; padding: 9px 12px; cursor: pointer;
+    background: var(--accent); color: var(--surface); border: 1px solid var(--accent); border-radius: 5px;
+  }
+  button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  button.varsel { background: var(--no); border-color: var(--no); color: #fff; }
+  button:hover { filter: brightness(1.08); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .buttons { display: flex; gap: 8px; }
+  .buttons button { flex: 1; }
+
+  h2.avsnitt { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; font-family: var(--mono); font-weight: 500; color: var(--ink-faint); }
+
+  .pyr { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .niva { display: grid; grid-template-columns: 168px minmax(0, 1fr) 150px; gap: 12px; align-items: center; }
+  @media (max-width: 620px) { .niva { grid-template-columns: 1fr; gap: 4px; } }
+  .niva .navn { font-size: 14px; color: var(--ink-soft); }
+  .niva .navn small { display: block; color: var(--ink-faint); font-size: 12px; }
+  .niva .stolpe { height: 30px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; position: relative; }
+  .niva .stolpe i { display: block; height: 100%; background: var(--foto); min-width: 2px; transition: width .18s ease; }
+  .niva .stolpe.n1 i { background: var(--foto); }
+  .niva .stolpe.n2 i { background: var(--kin); }
+  .niva .stolpe.n3 i { background: var(--pot); }
+  .niva .stolpe.n4 i { background: var(--accent); }
+  .niva .tall { font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; text-align: right; color: var(--ink); }
+  .niva .tall small { color: var(--ink-faint); font-size: 12px; }
+  .tap { display: grid; grid-template-columns: 168px minmax(0, 1fr) 150px; gap: 12px; align-items: center; font-size: 12.5px; color: var(--therm); font-family: var(--mono); }
+  @media (max-width: 620px) { .tap { grid-template-columns: 1fr; } }
+  .tap .midt { grid-column: 2; }
+  .sum { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); }
+  .sum dt { font-size: 13px; color: var(--ink-soft); }
+  .sum dd { font-family: var(--mono); font-size: 17px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .sum .note { flex-basis: 100%; font-size: 12.5px; color: var(--ink-faint); }
+
+  .lager { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .lager .rad { display: grid; grid-template-columns: 190px minmax(0, 1fr) 92px; gap: 12px; align-items: center; }
+  @media (max-width: 620px) { .lager .rad { grid-template-columns: 1fr; gap: 4px; } }
+  .lager .rad span:first-child { font-size: 14px; color: var(--ink-soft); }
+  .lager .sp { height: 22px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .lager .sp i { display: block; height: 100%; transition: width .12s linear; }
+  .lager .rad b { font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; text-align: right; }
+  .status { font-size: 15px; color: var(--ink-soft); max-width: 70ch; }
+  .status strong { color: var(--ink); }
+  .status.brudd { color: var(--no); }
+  .aar { font-family: var(--mono); font-size: 13px; color: var(--ink-faint); }
+
+  .teach { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--accent); }
+  .teach h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .teach p { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach strong { color: var(--ink); font-weight: 600; }
+  .teach ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .teach li { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach li::marker { color: var(--accent); font-family: var(--mono); font-size: 13px; }
+  .kilde { font-size: 12.5px; color: var(--ink-faint); font-family: var(--mono); max-width: 74ch; }
+  .hint { font-size: 13px; color: var(--ink-faint); font-style: italic; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Naturfag · Energi i levende systemer</div>
+    <h1>Stoff sirkulerer, energi strømmer</h1>
+    <p class="lede">De grå prikkene er karbonatomer. De går rundt og rundt og kommer alltid tilbake. De oransje er energi — de kommer inn fra sola, går én vei gjennom kjeden og forsvinner ut av bildet. Samme organismer, to helt ulike bevegelser. Det er hele forskjellen på et kretsløp og en strøm.</p>
+  </header>
+
+  <div class="panel"><canvas id="scene" width="1200" height="860" aria-label="Karbonkretsløpet som en ring, med energi som strømmer inn fra sola og ut som varme"></canvas></div>
+
+  <div class="panel controls">
+    <div class="ctrl">
+      <span class="lab">Vis</span>
+      <div class="segmented" id="vis" role="group" aria-label="Velg hva som vises">
+        <button type="button" data-v="begge" aria-pressed="true">Begge</button>
+        <button type="button" data-v="karbon" aria-pressed="false">Bare karbon</button>
+        <button type="button" data-v="energi" aria-pressed="false">Bare energi</button>
+      </div>
+    </div>
+    <div class="ctrl">
+      <label for="ovf">Overføring per ledd <b><span id="ovfv">10</span> %</b></label>
+      <input type="range" id="ovf" min="4" max="25" step="1" value="10">
+      <span class="hint">Tommelfingerregelen er 10 %. Dra og se hva som skjer med toppleddet.</span>
+    </div>
+    <div class="ctrl">
+      <span class="lab">Nedbryterne</span>
+      <div class="buttons">
+        <button id="nedbryt" class="varsel" type="button">Slå av nedbryterne</button>
+      </div>
+      <span class="hint" id="nedbryttekst">Sopp og bakterier lukker ringen.</span>
+    </div>
+    <div class="ctrl">
+      <span class="lab">Kjøring</span>
+      <div class="buttons">
+        <button id="play" type="button">Pause</button>
+        <button id="reset" class="ghost" type="button">Nullstill</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel lager">
+    <h2 class="avsnitt">Karbonlagrene <span class="aar">· år <span id="aar">0</span></span></h2>
+    <div class="rad"><span>CO₂ i lufta</span><div class="sp"><i id="spLuft"></i></div><b><span id="nLuft">333</span></b></div>
+    <div class="rad"><span>Bundet i levende</span><div class="sp"><i id="spLev"></i></div><b><span id="nLev">333</span></b></div>
+    <div class="rad"><span>Dødt organisk materiale</span><div class="sp"><i id="spDod"></i></div><b><span id="nDod">333</span></b></div>
+    <p class="status" id="lagerstatus"></p>
+    <p class="kilde">1000 karbonenheter i alt, og summen er alltid 1000 — det er bevaringen av stoff. Fordelingen er skjematisk og ikke hentet fra et karbonbudsjett.</p>
+  </div>
+
+  <div class="panel pyr">
+    <h2 class="avsnitt">Energibudsjettet gjennom næringskjeden</h2>
+
+    <div class="niva">
+      <span class="navn">Sollys inn<small>på én kvadratmeter, ett år</small></span>
+      <div class="stolpe"><i style="width:100%; background:var(--therm)"></i></div>
+      <span class="tall">1 000 000 <small>kJ</small></span>
+    </div>
+    <div class="tap"><span class="midt">↓ produsentene fanger bare rundt 1 % · resten reflekteres, fordamper vann eller treffer bakken</span></div>
+
+    <div class="niva">
+      <span class="navn">Produsenter<small>planter og alger</small></span>
+      <div class="stolpe n1"><i id="b1"></i></div>
+      <span class="tall"><span id="v1">10 000</span> <small>kJ</small></span>
+    </div>
+    <div class="tap"><span class="midt" id="t1"></span></div>
+
+    <div class="niva">
+      <span class="navn">Primærkonsumenter<small>planteetere</small></span>
+      <div class="stolpe n2"><i id="b2"></i></div>
+      <span class="tall"><span id="v2">1 000</span> <small>kJ</small></span>
+    </div>
+    <div class="tap"><span class="midt" id="t2"></span></div>
+
+    <div class="niva">
+      <span class="navn">Sekundærkonsumenter<small>rovdyr</small></span>
+      <div class="stolpe n3"><i id="b3"></i></div>
+      <span class="tall"><span id="v3">100</span> <small>kJ</small></span>
+    </div>
+    <div class="tap"><span class="midt" id="t3"></span></div>
+
+    <div class="niva">
+      <span class="navn">Toppredator<small>ørn, ulv</small></span>
+      <div class="stolpe n4"><i id="b4"></i></div>
+      <span class="tall"><span id="v4">10</span> <small>kJ</small></span>
+    </div>
+
+    <dl class="sum">
+      <dt>Energi ut av produsentleddet som varme, til sammen</dt>
+      <dd><span id="sumTap">9 990</span> kJ</dd>
+      <span class="note">Summen av det som er igjen og det som er gått til varme er alltid nøyaktig det produsentene fanget. Ingenting er borte — det er bare ikke lenger tilgjengelig for neste ledd.</span>
+    </dl>
+  </div>
+
+  <div class="panel teach">
+    <h2>Bruk modellen slik</h2>
+    <ol>
+      <li>Se på ringen med <strong>bare karbon</strong> først. Følg én grå prikk hele veien rundt. Den kommer tilbake til lufta. Det samme karbonatomet kan sitte i et blad, i en elg, i en sopp — og så i lufta igjen.</li>
+      <li>Bytt til <strong>bare energi</strong>. Prøv å følge én oransje prikk rundt. Det går ikke: den kommer inn fra sola, blir svakere for hvert ledd og forlater bildet som varme. <strong>Ingen energiprikk kommer noen gang tilbake til sola.</strong></li>
+      <li>Sett på begge samtidig. Nå ser du hvorfor sola må skinne hver eneste dag, mens karbonet klarer seg med det som allerede finnes. Stoff kan gjenbrukes; energi kan ikke.</li>
+      <li><strong>Slå av nedbryterne.</strong> Se på karbonlagrene mens året teller oppover. Dødt materiale hoper seg opp, lufta tømmes for CO₂, og fotosyntesen stopper fordi det ikke er råstoff igjen. Ringen er brutt på ett sted, og da virker den ingen steder.</li>
+      <li>Dra <strong>overføringen</strong> ned til 4 %. Toppredatoren blir nesten borte fra stolpen. Det er svaret på hvorfor det finnes så få ørner og så mange mus — og hvorfor næringskjeder sjelden har mer enn fire eller fem ledd.</li>
+    </ol>
+    <p><strong>Til klasserommet:</strong> spør hvor mange kilo gress som skal til for å lage ett kilo ørn, før du viser stolpene. De fleste gjetter altfor lavt. Med 10 % per ledd og tre ledd er svaret tusen kilo — og det tallet husker de.</p>
+    <p class="kilde">Modellen er skjematisk. 1 % innfanging og 10 % overføring er tommelfingerregler; virkelige økosystemer varierer mye. Karbonlagrene er relative enheter, ikke gigatonn.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var cv = document.getElementById("scene");
+  var ctx = cv.getContext("2d");
+  var W = cv.width, H = cv.height;
+  var CX = W / 2 + 30, CY = H / 2 + 30, R = 250;
+
+  var el = {};
+  ["ovf","ovfv","nedbryt","nedbryttekst","play","reset","aar",
+   "spLuft","spLev","spDod","nLuft","nLev","nDod","lagerstatus",
+   "b1","b2","b3","b4","v1","v2","v3","v4","t1","t2","t3","sumTap"].forEach(function (id) { el[id] = document.getElementById(id); });
+
+  // Ringen leses med klokka fra toppen: lufta → produsenter → konsumenter →
+  // dødt materiale → nedbrytere → lufta.
+  var NODER = [
+    { id: "luft", navn: "CO₂ i lufta",        under: "karbonlager",     vinkel: -90, farge: "--ink-faint" },
+    { id: "prod", navn: "Produsenter",        under: "planter, alger",  vinkel: -18, farge: "--foto" },
+    { id: "kons", navn: "Konsumenter",        under: "dyr",             vinkel:  54, farge: "--kin" },
+    { id: "dodt", navn: "Dødt materiale",     under: "strø, døde dyr",  vinkel: 126, farge: "--pot" },
+    { id: "nedb", navn: "Nedbrytere",         under: "sopp, bakterier", vinkel: 198, farge: "--accent" }
+  ];
+  NODER.forEach(function (n) {
+    var v = n.vinkel * Math.PI / 180;
+    n.x = CX + Math.cos(v) * R;
+    n.y = CY + Math.sin(v) * R;
+  });
+
+  var st = { vis: "begge", nedbrytere: true, kjorer: true, t: 0, aar: 0,
+             luft: 333.4, lev: 333.3, dod: 333.3 };
+
+  var karbon = [], energi = [], varme = [];
+  for (var i = 0; i < 26; i++) karbon.push({ ledd: i % 5, p: Math.random(), fart: 0.16 + Math.random() * 0.05 });
+  for (var j = 0; j < 22; j++) energi.push({ ledd: Math.floor(Math.random() * 3), p: Math.random(), fart: 0.20 + Math.random() * 0.06, styrke: 1 });
+
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function ovf() { return parseFloat(el.ovf.value) / 100; }
+
+  /* ---- posisjon langs ringen --------------------------------------------- */
+
+  function langsRing(fra, p) {
+    var a = NODER[fra], b = NODER[(fra + 1) % 5];
+    var va = a.vinkel * Math.PI / 180, vb = b.vinkel * Math.PI / 180;
+    if (vb < va) vb += Math.PI * 2;
+    var v = va + (vb - va) * p;
+    return { x: CX + Math.cos(v) * R, y: CY + Math.sin(v) * R, v: v };
+  }
+
+  // Energibanen er den samme buen, men trukket litt utenfor ringen, så de to
+  // strømmene ikke legger seg oppå hverandre og blir umulige å skille.
+  function langsEnergi(ledd, p) {
+    var a = NODER[ledd + 1], b = NODER[ledd + 2];
+    if (!b) return null;
+    var va = a.vinkel * Math.PI / 180, vb = b.vinkel * Math.PI / 180;
+    if (vb < va) vb += Math.PI * 2;
+    var v = va + (vb - va) * p;
+    return { x: CX + Math.cos(v) * (R + 42), y: CY + Math.sin(v) * (R + 42), v: v };
+  }
+
+  /* ---- tegning ------------------------------------------------------------ */
+
+  function pil(x1, y1, x2, y2, farge, bredde, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha === undefined ? 1 : alpha;
+    ctx.strokeStyle = farge; ctx.fillStyle = farge; ctx.lineWidth = bredde;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    var vk = Math.atan2(y2 - y1, x2 - x1), L = 16;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - L * Math.cos(vk - 0.38), y2 - L * Math.sin(vk - 0.38));
+    ctx.lineTo(x2 - L * Math.cos(vk + 0.38), y2 - L * Math.sin(vk + 0.38));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function tegnSol() {
+    var sx = 116, sy = 116;
+    ctx.save();
+    ctx.fillStyle = css("--therm");
+    ctx.beginPath(); ctx.arc(sx, sy, 46, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = css("--therm"); ctx.lineWidth = 5; ctx.lineCap = "round";
+    for (var k = 0; k < 12; k++) {
+      var v = k * Math.PI / 6 + st.t * 0.15;
+      ctx.globalAlpha = 0.75;
+      ctx.beginPath();
+      ctx.moveTo(sx + Math.cos(v) * 58, sy + Math.sin(v) * 58);
+      ctx.lineTo(sx + Math.cos(v) * (72 + 5 * Math.sin(st.t * 2 + k)), sy + Math.sin(v) * (72 + 5 * Math.sin(st.t * 2 + k)));
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = css("--ink-soft");
+    ctx.font = "500 22px " + css("--mono");
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.fillText("SOLA", sx, sy + 74);
+    ctx.font = "18px " + css("--sans");
+    ctx.fillStyle = css("--ink-faint");
+    ctx.fillText("eneste påfyll", sx, sy + 102);
+    ctx.restore();
+
+    if (st.vis !== "karbon") {
+      var prod = NODER[1];
+      var dx = prod.x - sx, dy = prod.y - sy, len = Math.hypot(dx, dy);
+      pil(sx + dx / len * 76, sy + dy / len * 76, prod.x - dx / len * 86, prod.y - dy / len * 86, css("--therm"), 5, 0.5);
+    }
+  }
+
+  function tegnRing() {
+    // grunnring
+    ctx.save();
+    ctx.strokeStyle = css("--line"); ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    // buen fra nedbrytere tilbake til lufta markeres brutt når nedbryterne er av
+    if (!st.nedbrytere) {
+      ctx.save();
+      var va = NODER[4].vinkel * Math.PI / 180, vb = NODER[0].vinkel * Math.PI / 180 + Math.PI * 2;
+      ctx.strokeStyle = css("--no"); ctx.lineWidth = 7; ctx.setLineDash([14, 16]);
+      ctx.beginPath(); ctx.arc(CX, CY, R, va, vb); ctx.stroke();
+      ctx.restore();
+    }
+
+    // retningspiler på hver bue
+    for (var i = 0; i < 5; i++) {
+      var brutt = (i === 4 && !st.nedbrytere);
+      if (st.vis === "energi") break;
+      var a = langsRing(i, 0.46), b = langsRing(i, 0.56);
+      pil(a.x, a.y, b.x, b.y, css(brutt ? "--no" : "--ink-faint"), 3, brutt ? 0.9 : 0.55);
+    }
+
+    NODER.forEach(function (n) {
+      var av = (!st.nedbrytere && n.id === "nedb");
+      ctx.save();
+      ctx.globalAlpha = av ? 0.35 : 1;
+      ctx.fillStyle = css("--surface");
+      ctx.strokeStyle = css(n.farge);
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(n.x, n.y, 74, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = css("--ink");
+      ctx.font = "600 21px " + css("--sans");
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      var ord = n.navn.split(" ");
+      if (ord.length > 1 && n.navn.length > 12) {
+        ctx.fillText(ord[0], n.x, n.y - 12);
+        ctx.fillText(ord.slice(1).join(" "), n.x, n.y + 12);
+      } else {
+        ctx.fillText(n.navn, n.x, n.y - 6);
+      }
+      ctx.fillStyle = css("--ink-faint");
+      ctx.font = "16px " + css("--sans");
+      ctx.fillText(n.under, n.x, n.y + 40);
+      ctx.restore();
+    });
+
+    if (!st.nedbrytere) {
+      ctx.save();
+      ctx.fillStyle = css("--no");
+      ctx.font = "600 22px " + css("--sans");
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("ringen er brutt", CX + Math.cos(243 * Math.PI / 180) * (R + 96), CY + Math.sin(243 * Math.PI / 180) * (R + 96));
+      ctx.restore();
+    }
+  }
+
+  function tegnMerkelapper() {
+    ctx.save();
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "600 23px " + css("--sans");
+    ctx.fillStyle = css("--ink-soft");
+    ctx.fillText("KARBON GÅR RUNDT", CX, CY - 18);
+    ctx.font = "18px " + css("--sans");
+    ctx.fillStyle = css("--ink-faint");
+    ctx.fillText("samme atomer, om og om igjen", CX, CY + 14);
+    ctx.restore();
+  }
+
+  function tegnPrikker() {
+    if (st.vis !== "energi") {
+      ctx.save();
+      ctx.fillStyle = css("--ink-soft");
+      for (var i = 0; i < karbon.length; i++) {
+        var k = karbon[i], pos = langsRing(k.ledd, k.p);
+        ctx.beginPath(); ctx.arc(pos.x, pos.y, 9, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    if (st.vis !== "karbon") {
+      ctx.save();
+      for (var j = 0; j < energi.length; j++) {
+        var e = energi[j], p2 = langsEnergi(e.ledd, e.p);
+        if (!p2) continue;
+        ctx.globalAlpha = 0.35 + 0.65 * e.styrke;
+        ctx.fillStyle = e.styrke > 0.6 ? css("--foto") : css("--therm");
+        ctx.beginPath(); ctx.arc(p2.x, p2.y, 5 + 7 * e.styrke, 0, Math.PI * 2); ctx.fill();
+      }
+      for (var v = 0; v < varme.length; v++) {
+        var w = varme[v];
+        ctx.globalAlpha = w.liv;
+        ctx.fillStyle = css("--therm");
+        ctx.beginPath(); ctx.arc(w.x, w.y, 7, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  function tegnUtgang() {
+    if (st.vis === "karbon") return;
+    ctx.save();
+    ctx.fillStyle = css("--therm");
+    ctx.font = "500 21px " + css("--mono");
+    ctx.textAlign = "right"; ctx.textBaseline = "top";
+    ctx.fillText("VARME UT — KOMMER ALDRI TILBAKE", W - 34, 34);
+    ctx.font = "17px " + css("--sans");
+    ctx.fillStyle = css("--ink-faint");
+    ctx.fillText("hvert ledd taper til omgivelsene", W - 34, 62);
+    ctx.restore();
+  }
+
+  function tegn() {
+    ctx.clearRect(0, 0, W, H);
+    tegnSol();
+    tegnRing();
+    tegnMerkelapper();
+    tegnPrikker();
+    tegnUtgang();
+  }
+
+  /* ---- bevegelse ---------------------------------------------------------- */
+
+  function flytt(dt) {
+    for (var i = 0; i < karbon.length; i++) {
+      var k = karbon[i];
+      // Er ringen brutt, stanser prikkene som når nedbryterne. De andre buene
+      // går videre helt til lagrene er tomme — det er slik oppsamlingen ser ut.
+      var stans = (!st.nedbrytere && k.ledd === 4) || (!st.nedbrytere && k.ledd === 0 && st.luft < 8);
+      if (!stans) k.p += k.fart * dt;
+      if (k.p >= 1) { k.p -= 1; k.ledd = (k.ledd + 1) % 5; }
+    }
+
+    for (var j = 0; j < energi.length; j++) {
+      var e = energi[j];
+      e.p += e.fart * dt;
+      if (e.p >= 1) {
+        e.p -= 1;
+        // Slipp varme ved noden prikken passerer, og bli svakere.
+        var node = NODER[e.ledd + 2];
+        if (node) for (var q = 0; q < 3; q++) {
+          var vk = Math.atan2(node.y - CY, node.x - CX) + (Math.random() - 0.5) * 0.7;
+          varme.push({ x: node.x, y: node.y, vx: Math.cos(vk) * 150, vy: Math.sin(vk) * 150, liv: 1 });
+        }
+        e.styrke *= Math.max(ovf() * 3.4, 0.18);
+        e.ledd++;
+        if (e.ledd > 2 || e.styrke < 0.09) { e.ledd = 0; e.styrke = 1; e.p = Math.random() * 0.2; }
+      }
+    }
+
+    for (var v = varme.length - 1; v >= 0; v--) {
+      var w = varme[v];
+      w.x += w.vx * dt; w.y += w.vy * dt; w.liv -= dt * 0.75;
+      if (w.liv <= 0) varme.splice(v, 1);
+    }
+    if (varme.length > 220) varme.splice(0, varme.length - 220);
+  }
+
+  /* ---- karbonlagrene ------------------------------------------------------ */
+
+  function lagerSteg(dt) {
+    var aarPerSek = 1.6;
+    var d = dt * aarPerSek;
+    st.aar += d;
+
+    var rate = 0.25;
+    var foto  = rate * st.luft * d;        // lufta  → levende
+    var dodTil = rate * st.lev  * d;       // levende → dødt
+    var nedbr = st.nedbrytere ? rate * st.dod * d : 0;   // dødt → lufta
+
+    st.luft += nedbr - foto;
+    st.lev  += foto - dodTil;
+    st.dod  += dodTil - nedbr;
+    st.luft = Math.max(st.luft, 0); st.lev = Math.max(st.lev, 0); st.dod = Math.max(st.dod, 0);
+  }
+
+  function skrivLager() {
+    var tot = st.luft + st.lev + st.dod;
+    function sett(sp, num, verdi, farge) {
+      sp.style.width = (verdi / tot * 100) + "%";
+      sp.style.background = css(farge);
+      num.textContent = Math.round(verdi);
+    }
+    sett(el.spLuft, el.nLuft, st.luft, "--ink-faint");
+    sett(el.spLev,  el.nLev,  st.lev,  "--foto");
+    sett(el.spDod,  el.nDod,  st.dod,  "--pot");
+    el.aar.textContent = Math.round(st.aar);
+
+    if (st.nedbrytere) {
+      el.lagerstatus.className = "status";
+      el.lagerstatus.innerHTML = "Ringen er lukket. De tre lagrene holder seg omtrent like store år etter år — "
+        + "karbon flyttes hele tida, men <strong>ingenting hoper seg opp og ingenting tar slutt</strong>.";
+    } else if (st.luft > 40) {
+      el.lagerstatus.className = "status brudd";
+      el.lagerstatus.innerHTML = "Uten nedbrytere kommer ikke karbonet tilbake til lufta. <strong>Dødt materiale hoper seg opp</strong>, "
+        + "og CO₂-lageret tømmes.";
+    } else {
+      el.lagerstatus.className = "status brudd";
+      el.lagerstatus.innerHTML = "<strong>Fotosyntesen har stoppet.</strong> Det er ikke CO₂ igjen i lufta å bygge av, "
+        + "og alt karbonet ligger bundet i en haug ingen kan bruke. Det er derfor nedbryterne ikke er et biprodukt av økosystemet — de <strong>er</strong> økosystemet.";
+    }
+  }
+
+  /* ---- pyramiden ---------------------------------------------------------- */
+
+  function nb(x) { return Math.round(x).toLocaleString("nb-NO"); }
+
+  function skrivPyramide() {
+    var f = ovf();
+    var n1 = 10000, n2 = n1 * f, n3 = n2 * f, n4 = n3 * f;
+    var nivaer = [n1, n2, n3, n4];
+    for (var i = 0; i < 4; i++) {
+      el["b" + (i + 1)].style.width = (nivaer[i] / n1 * 100) + "%";
+      el["v" + (i + 1)].textContent = nivaer[i] >= 10 ? nb(nivaer[i]) : nivaer[i].toFixed(1).replace(".", ",");
+    }
+    var tapt = Math.round((1 - f) * 100);
+    for (var k = 1; k <= 3; k++) {
+      el["t" + k].textContent = "↓ " + tapt + " % går ut som varme — celleånding, bevegelse, kroppsvarme, ufordøyd";
+    }
+    el.sumTap.textContent = nb(n1 - n4);
+  }
+
+  /* ---- løkke -------------------------------------------------------------- */
+
+  var forrige = 0;
+  function loop(ts) {
+    if (!forrige) forrige = ts;
+    var dt = Math.min((ts - forrige) / 1000, 0.05);
+    forrige = ts;
+    if (st.kjorer) { st.t += dt; flytt(dt); lagerSteg(dt); skrivLager(); }
+    tegn();
+    requestAnimationFrame(loop);
+  }
+
+  /* ---- hendelser ---------------------------------------------------------- */
+
+  Array.prototype.forEach.call(document.querySelectorAll("#vis button"), function (b) {
+    b.addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll("#vis button"), function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      st.vis = b.dataset.v;
+    });
+  });
+
+  el.ovf.addEventListener("input", function () { el.ovfv.textContent = el.ovf.value; skrivPyramide(); });
+
+  function settNedbrytere(pa) {
+    st.nedbrytere = pa;
+    el.nedbryt.textContent = pa ? "Slå av nedbryterne" : "Slå på nedbryterne igjen";
+    el.nedbryt.className = pa ? "varsel" : "";
+    el.nedbryttekst.textContent = pa ? "Sopp og bakterier lukker ringen." : "Ringen er åpen. Se på lagrene.";
+    skrivLager();
+  }
+
+  el.nedbryt.addEventListener("click", function () { settNedbrytere(!st.nedbrytere); });
+
+  el.play.addEventListener("click", function () {
+    st.kjorer = !st.kjorer;
+    el.play.textContent = st.kjorer ? "Pause" : "Start";
+  });
+
+  el.reset.addEventListener("click", function () {
+    st.aar = 0; st.luft = 333.4; st.lev = 333.3; st.dod = 333.3;
+    varme.length = 0;
+    settNedbrytere(true);
+  });
+
+  skrivPyramide();
+  skrivLager();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+[
+  {
+    "id": "arstidsmaskinen",
+    "tittel": "Årstidsmaskinen",
+    "tema": "jorda",
+    "tekst": "Flytt jorda rundt sola, forutsi årstid, daglengde og solhøyde – og avslør avstandsmyten.",
+    "minutter": 3
+  },
+  {
+    "id": "blodomlopet",
+    "tittel": "Blodomløpet",
+    "tema": "kropp",
+    "tekst": "Los en blodcelle gjennom det doble kretsløpet og se hvor den henter oksygen.",
+    "minutter": 3
+  },
+  {
+    "id": "drivhusbalansen",
+    "tittel": "Drivhusbalansen",
+    "tema": "jorda",
+    "tekst": "Vær et CO₂-molekyl som fanger varmestråling – og skru på drivhusgassene til jorda.",
+    "minutter": 3
+  },
+  {
+    "id": "energikjede",
+    "tittel": "Energikjeden",
+    "tema": "energi",
+    "tekst": "Bygg energikjeden ledd for ledd og se at totalen er konstant mens kvaliteten synker.",
+    "minutter": 3
+  },
+  {
+    "id": "hmsjakten",
+    "tittel": "HMS-jakten",
+    "tema": "praksis",
+    "tekst": "Finn farene på skolelaben, og gjør en risikovurdering med sannsynlighet × konsekvens.",
+    "minutter": 3
+  },
+  {
+    "id": "ionebyggeren",
+    "tittel": "Ionebyggeren",
+    "tema": "stoffer",
+    "tekst": "Gi og ta elektroner til atomene får fullt ytterskall – og bygg ioneforbindelser med riktig formel.",
+    "minutter": 3
+  },
+  {
+    "id": "karbonbanken",
+    "tittel": "Karbonbanken",
+    "tema": "liv",
+    "tekst": "Flytt karbon mellom bankkontoene og se hva som skjer med atmosfæren.",
+    "minutter": 3
+  },
+  {
+    "id": "kodelaben",
+    "tittel": "Kodelaben: kaffen som kjølner",
+    "tema": "teknologi",
+    "tekst": "Programmer en simulering av kaffe som kjølner, og tilpass modellen til målte data.",
+    "minutter": 3
+  },
+  {
+    "id": "maledataverkstedet",
+    "tittel": "Måledataverkstedet",
+    "tema": "praksis",
+    "tekst": "Finn uteliggeren i klassens måledata – og trekk en slutning som dataene faktisk tåler.",
+    "minutter": 3
+  },
+  {
+    "id": "manekikkerten",
+    "tittel": "Månekikkerten",
+    "tema": "jorda",
+    "tekst": "Se jorda og månen ovenfra – og finn ut hvordan månen ser ut fra Norge.",
+    "minutter": 3
+  },
+  {
+    "id": "matpakkereisen",
+    "tittel": "Matpakkereisen",
+    "tema": "kropp",
+    "tekst": "Følg en bit av matpakka fra munnen til tarmen – og se næringsstoffene brytes ned til byggesteiner.",
+    "minutter": 3
+  },
+  {
+    "id": "naeringsnettet",
+    "tittel": "10 %-pyramiden",
+    "tema": "liv",
+    "tekst": "Bygg en næringskjede og følg energien ledd for ledd — hvor blir det av 90 %?",
+    "minutter": 3
+  },
+  {
+    "id": "nedbrytningslaben",
+    "tittel": "Tea Bag-laben",
+    "tema": "liv",
+    "tekst": "Design et rettferdig nedbrytingsforsøk med teposer og finn ut hvorfor myr lagrer karbon.",
+    "minutter": 3
+  },
+  {
+    "id": "partikkelboksen",
+    "tittel": "Partikkelboksen",
+    "tema": "stoffer",
+    "tekst": "Skru på temperaturen og koble det du ser, partiklene og formelen – kjemiens tre nivåer.",
+    "minutter": 3
+  },
+  {
+    "id": "pendellaben",
+    "tittel": "Pendellaben",
+    "tema": "praksis",
+    "tekst": "Finn ut hva som bestemmer svingetiden – én variabel om gangen.",
+    "minutter": 3
+  },
+  {
+    "id": "plantedognet",
+    "tittel": "Plantedøgnet",
+    "tema": "liv",
+    "tekst": "Styr lyset over en plante i BTB-løsning og avslør om planter «puster».",
+    "minutter": 3
+  },
+  {
+    "id": "reaksjonsbalansen",
+    "tittel": "Reaksjonsbalansen",
+    "tema": "stoffer",
+    "tekst": "Balanser reaksjonslikninger med koeffisienter — og se at ingen atomer forsvinner.",
+    "minutter": 3
+  },
+  {
+    "id": "robotruten",
+    "tittel": "Robotruten",
+    "tema": "teknologi",
+    "tekst": "Programmer roboten fram til flagget – med sekvens, løkke og litt feilsøking.",
+    "minutter": 3
+  },
+  {
+    "id": "smittesimulatoren",
+    "tittel": "Smittesimulatoren",
+    "tema": "kropp",
+    "tekst": "Slipp løs en smitte i en liten by og finn ut hvor mange som må være vaksinert for å stoppe den.",
+    "minutter": 3
+  },
+  {
+    "id": "sprettballen",
+    "tittel": "Sprettballen",
+    "tema": "energi",
+    "tekst": "Forutsi farten og spretthøyden – og finn ut hvor energien blir av når ballen ligger stille.",
+    "minutter": 3
+  },
+  {
+    "id": "strommaleren",
+    "tittel": "Strømmåleren",
+    "tema": "energi",
+    "tekst": "Vannkoker eller lyspære – hva bruker mest energi? Skill watt fra kilowattimer.",
+    "minutter": 3
+  },
+  {
+    "id": "termostaten",
+    "tittel": "Termostaten",
+    "tema": "teknologi",
+    "tekst": "Programmer en termostat som holder stua varm – også når noen åpner vinduet.",
+    "minutter": 3
+  },
+  {
+    "id": "utvalgsspillet",
+    "tittel": "Utvalgsspillet",
+    "tema": "liv",
+    "tekst": "Vær fuglen som jakter nattsvermere – og se bestanden endre seg fra generasjon til generasjon.",
+    "minutter": 3
+  },
+  {
+    "id": "varmekurve",
+    "tittel": "Varmekurven",
+    "tema": "energi",
+    "tekst": "Varm opp is og finn ut hvorfor termometeret står stille selv om brenneren går.",
+    "minutter": 3
+  }
+]

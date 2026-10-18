@@ -1,0 +1,156 @@
+{
+  "tema": [
+    {
+      "id": "energi",
+      "navn": "Energi",
+      "kjerneelement": "Energi og materie",
+      "sporsmal": [
+        "Hva får ting til å skje, og hvor blir energien av etterpå?",
+        "Hvor kommer energien vi bruker fra, og hvordan kan den rekke lenger?"
+      ]
+    },
+    {
+      "id": "stoffer",
+      "navn": "Stoffer",
+      "kjerneelement": "Energi og materie",
+      "sporsmal": [
+        "Hva er alt laget av, helt inn til de minste delene?",
+        "Hvorfor endrer stoffer seg, og hva betyr det for livet vårt?"
+      ]
+    },
+    {
+      "id": "kropp",
+      "navn": "Kropp og helse",
+      "kjerneelement": "Kropp og helse",
+      "sporsmal": [
+        "Hvordan samarbeider delene i kroppen for å holde oss i live?",
+        "Hva kan vi gjøre for å holde oss friske?"
+      ]
+    },
+    {
+      "id": "jorda",
+      "navn": "Jorda og universet",
+      "kjerneelement": "Jorda og livet på jorda",
+      "sporsmal": [
+        "Hvordan ble jorda og verdensrommet slik de er i dag?",
+        "Hvilke spor setter vi mennesker på planeten vår?"
+      ]
+    },
+    {
+      "id": "liv",
+      "navn": "Livet på jorda",
+      "kjerneelement": "Jorda og livet på jorda",
+      "sporsmal": [
+        "Hvorfor finnes det så mange ulike arter, og hvordan oppsto de?",
+        "Hva skal til for at naturen tåler at vi bruker den?"
+      ]
+    },
+    {
+      "id": "teknologi",
+      "navn": "Teknologi",
+      "kjerneelement": "Teknologi",
+      "sporsmal": [
+        "Hvordan går vi fra et problem til en løsning som virker?",
+        "Hva vinner vi, og hva taper vi, når vi tar i bruk ny teknologi?"
+      ]
+    },
+    {
+      "id": "praksis",
+      "navn": "Praksiser og tenkemåter",
+      "kjerneelement": "Naturvitenskapelige praksiser og tenkemåter",
+      "tverrgaende": true,
+      "ingress": "Å stille spørsmål, planlegge forsøk, måle og argumentere hører hjemme i alle temaene."
+    }
+  ],
+  "ressurser": [
+    {
+      "tittel": "Hvor blir energien av?",
+      "tema": "energi",
+      "type": "film",
+      "fil": "film/hvor-blir-energien-av.mp4",
+      "side": "hvor-blir-energien-av",
+      "minutter": 2,
+      "malgruppe": [
+        "elev"
+      ],
+      "tekst": "Energien følges fra sola, gjennom brødskiva og musklene, til bremsene på en sykkel. Energiregnskapet nederst viser at summen står stille."
+    },
+    {
+      "tittel": "Energi som ikke forsvinner",
+      "tema": "energi",
+      "type": "modell",
+      "fil": "modeller/energi-som-ikke-forsvinner.html",
+      "malgruppe": [
+        "elev",
+        "laerer"
+      ],
+      "tekst": "Sprettball med løpende energiregnskap. Kinetisk og potensiell energi bytter plass, og det som mangler dukker opp som termisk energi."
+    },
+    {
+      "tittel": "Watt ganger time",
+      "tema": "energi",
+      "type": "modell",
+      "fil": "modeller/watt-ganger-time.html",
+      "malgruppe": [
+        "elev",
+        "laerer"
+      ],
+      "tekst": "Arbeid som kraft ganger strekning, energi som areal under effektkurven, og virkningsgrad som brøk."
+    },
+    {
+      "tittel": "Kjeden som ikke krymper",
+      "tema": "energi",
+      "type": "modell",
+      "fil": "modeller/kjeden-som-ikke-krymper.html",
+      "malgruppe": [
+        "elev",
+        "laerer"
+      ],
+      "tekst": "Sankeydiagram for bensinbil, elbil, vannkraft og sykkeltur. Søyla er like høy hele veien, men energien som kan gjøre arbeid blir mindre."
+    },
+    {
+      "tittel": "Når temperaturen står stille",
+      "tema": "energi",
+      "type": "modell",
+      "fil": "modeller/nar-temperaturen-star-stille.html",
+      "malgruppe": [
+        "elev",
+        "laerer"
+      ],
+      "tekst": "Partikkelboks og oppvarmingskurve side om side. Hvor tar energien veien når termometeret står stille?"
+    },
+    {
+      "tittel": "Når atomer holder sammen",
+      "tema": "stoffer",
+      "type": "film",
+      "fil": "modeller/nar-atomer-holder-sammen.html",
+      "minutter": 5,
+      "malgruppe": [
+        "elev"
+      ],
+      "tekst": "Animert film om atomer, molekyler og de tre bindingstypene. Med opplesning, kapitler og spørsmål til slutt."
+    },
+    {
+      "tittel": "Stoff sirkulerer, energi strømmer",
+      "tema": "liv",
+      "type": "modell",
+      "fil": "modeller/stoff-sirkulerer-energi-strommer.html",
+      "malgruppe": [
+        "elev",
+        "laerer"
+      ],
+      "tekst": "Karbonkretsløpet som en ring, med energien som en strøm gjennom de samme organismene. Slå av nedbryterne og se hva som skjer."
+    },
+    {
+      "tittel": "Hva bestemmer svingetiden?",
+      "tema": "praksis",
+      "type": "modell",
+      "fil": "modeller/hva-bestemmer-svingetiden.html",
+      "minutter": 60,
+      "malgruppe": [
+        "elev"
+      ],
+      "tekst": "Pendelforsøk med to pendler side om side, måletabell og fasit. Endre én variabel om gangen."
+    }
+  ]
+}

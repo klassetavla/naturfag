@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Når temperaturen står stille</title>
+<style>
+  :root {
+    --ground: #f2f4f6;
+    --surface: #ffffff;
+    --surface-2: #e8ecef;
+    --ink: #131b22;
+    --ink-soft: #4a5865;
+    --ink-faint: #77848f;
+    --line: #d5dce1;
+    --accent: #1d5b7a;
+
+    --kin: #1f7ae0;
+    --pot: #6b4fc4;
+    --therm: #d1622a;
+
+    --ok: #2c7a52;
+    --ok-flate: #e6f2eb;
+    --no: #9c2f3f;
+    --no-flate: #f7e8ea;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, Palatino, "Noto Serif", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+      --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+      --line: #26313a; --accent: #6bb6d6;
+      --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+      --ok: #5cba85; --ok-flate: #14261d;
+      --no: #e3808f; --no-flate: #2a171b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+    --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+    --line: #26313a; --accent: #6bb6d6;
+    --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+    --ok: #5cba85; --ok-flate: #14261d;
+    --no: #e3808f; --no-flate: #2a171b;
+  }
+  :root[data-theme="light"] {
+    --ground: #f2f4f6; --surface: #ffffff; --surface-2: #e8ecef;
+    --ink: #131b22; --ink-soft: #4a5865; --ink-faint: #77848f;
+    --line: #d5dce1; --accent: #1d5b7a;
+    --kin: #1f7ae0; --pot: #6b4fc4; --therm: #d1622a;
+    --ok: #2c7a52; --ok-flate: #e6f2eb;
+    --no: #9c2f3f; --no-flate: #f7e8ea;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 18px 72px; display: flex; flex-direction: column; gap: 26px; }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .11em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 650; letter-spacing: -.02em; line-height: 1.15; text-wrap: balance; }
+  .lede { color: var(--ink-soft); max-width: 66ch; font-size: 16px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+
+  .stage { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 820px) { .stage { grid-template-columns: 1fr; } }
+  canvas { display: block; width: 100%; height: auto; border-radius: 8px; }
+  #graf { cursor: crosshair; }
+
+  .controls { padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; align-items: end; }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl label { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ctrl label b { font-family: var(--mono); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; text-transform: none; letter-spacing: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  .segmented { display: flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+  .segmented button { flex: 1; border: 0; border-radius: 0; background: transparent; color: var(--ink-soft); font-weight: 500; padding: 8px 4px; }
+  .segmented button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+
+  .buttons { display: flex; gap: 8px; }
+  button {
+    flex: 1; font: inherit; font-size: 14px; font-weight: 550; padding: 9px 12px; cursor: pointer;
+    background: var(--accent); color: var(--surface); border: 1px solid var(--accent); border-radius: 5px;
+  }
+  button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  button:hover { filter: brightness(1.08); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+  .check input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  .avlesning { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .avlesning h2, .konto h2, .teach h2, .duo h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; font-family: var(--mono); font-weight: 500; color: var(--ink-faint); }
+  .tall { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
+  .t { display: flex; flex-direction: column; gap: 2px; padding-left: 11px; border-left: 3px solid var(--line); }
+  .t dt { font-size: 12px; color: var(--ink-soft); }
+  .t dd { font-family: var(--mono); font-size: 18px; font-variant-numeric: tabular-nums; }
+  .t dd small { font-size: 12px; color: var(--ink-faint); }
+  .t.temp { border-left-color: var(--therm); }
+  .t.tid { border-left-color: var(--line); }
+  .t.fase { border-left-color: var(--accent); }
+  .t.energi { border-left-color: var(--ink-faint); }
+  .t.kap { border-left-color: var(--kin); }
+  .t.kap dd.stille { color: var(--ink-faint); font-size: 15px; }
+
+  .fasestrek { font-family: var(--mono); font-size: 15px; color: var(--ink); }
+  .fasestrek em { font-style: normal; color: var(--therm); font-weight: 600; }
+
+  .konto { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .bar { display: flex; height: 46px; border-radius: 5px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); }
+  .seg { transition: width .08s linear; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .seg span { font-family: var(--mono); font-size: 12px; color: #fff; white-space: nowrap; padding: 0 6px; }
+  #segKin { background: var(--kin); }
+  #segBind { background: var(--pot); }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .leg { display: flex; flex-direction: column; gap: 2px; padding-left: 11px; border-left: 3px solid var(--line); }
+  .leg.k { border-left-color: var(--kin); }
+  .leg.b { border-left-color: var(--pot); }
+  .leg dt { font-size: 12px; color: var(--ink-soft); }
+  .leg dd { font-family: var(--mono); font-size: 17px; font-variant-numeric: tabular-nums; }
+  .leg dd small { font-size: 12px; color: var(--ink-faint); }
+  .leg .om { font-size: 12px; color: var(--ink-faint); }
+
+  .meter { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .meter .rad { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .meter .rad span:first-child { font-size: 13px; color: var(--ink-soft); }
+  .meter .rad b { font-family: var(--mono); font-size: 16px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .spor { height: 10px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+  .spor i { display: block; height: 100%; background: var(--kin); transition: width .08s linear; }
+  .meter .note { font-size: 12.5px; color: var(--ink-faint); }
+
+  .duo { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .duo .par { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 620px) { .duo .par { grid-template-columns: 1fr; } }
+  .kar { border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .kar h3 { font-size: 15px; font-weight: 600; }
+  .kar .stor { font-family: var(--mono); font-size: clamp(20px, 4vw, 26px); font-variant-numeric: tabular-nums; color: var(--therm); }
+  .kar .liten { font-size: 12.5px; color: var(--ink-faint); font-family: var(--mono); }
+  .kar .vol { display: flex; height: 14px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+  .kar .vol i { display: block; height: 100%; background: var(--therm); }
+  .duo .dom { font-size: 15px; color: var(--ink-soft); max-width: 70ch; }
+  .duo .dom strong { color: var(--ink); }
+
+  .teach { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--accent); }
+  .teach h2 { color: var(--accent); font-weight: 600; }
+  .teach p { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach strong { color: var(--ink); font-weight: 600; }
+  .teach ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .teach li { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach li::marker { color: var(--accent); font-family: var(--mono); font-size: 13px; }
+  .hint { font-size: 13px; color: var(--ink-faint); font-style: italic; }
+  .kilde { font-size: 12.5px; color: var(--ink-faint); font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Naturfag · Varme og indre energi</div>
+    <h1>Når temperaturen står stille</h1>
+    <p class="lede">Du fyller på energi i jevn takt. Likevel står termometeret bom stille i lange strekk. Energien blir ikke borte i de strekkene — den flytter seg fra én konto til en annen. Modellen viser begge kontoene samtidig.</p>
+  </header>
+
+  <div class="stage">
+    <div class="panel"><canvas id="boks" width="680" height="720" aria-label="Partikkelboks som viser fast stoff, væske og gass"></canvas></div>
+    <div class="panel"><canvas id="graf" width="1180" height="720" aria-label="Graf over temperatur som funksjon av tilført energi"></canvas></div>
+  </div>
+
+  <div class="panel controls">
+    <div class="ctrl">
+      <label for="stoff">Stoff</label>
+      <div class="segmented" id="stoff" role="group" aria-label="Velg stoff">
+        <button type="button" data-s="vann" aria-pressed="true">Vann</button>
+        <button type="button" data-s="etanol" aria-pressed="false">Etanol</button>
+        <button type="button" data-s="jern" aria-pressed="false">Jern</button>
+      </div>
+    </div>
+    <div class="ctrl">
+      <label for="m">Masse <b><span id="mv">1,00</span> kg</b></label>
+      <input type="range" id="m" min="0.2" max="3" step="0.05" value="1">
+    </div>
+    <div class="ctrl">
+      <label for="p">Varmetilførsel <b><span id="pv">2000</span> W</b></label>
+      <input type="range" id="p" min="200" max="6000" step="100" value="2000">
+      <span class="hint">Klokka går 150× fortere enn i virkeligheten.</span>
+    </div>
+    <div class="ctrl">
+      <div class="buttons">
+        <button id="play">Skru på varmen</button>
+        <button id="reset" class="ghost">Nullstill</button>
+      </div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="medKok" checked> Ta med fordampningen</label>
+    </div>
+  </div>
+
+  <div class="panel avlesning">
+    <h2>Avlesning</h2>
+    <dl class="tall">
+      <div class="t temp"><dt>Temperatur</dt><dd><span id="numT">-25,0</span> <small>°C</small></dd></div>
+      <div class="t energi"><dt>Tilført energi</dt><dd><span id="numE">0</span> <small>kJ</small></dd></div>
+      <div class="t tid"><dt>Tid siden start</dt><dd><span id="numTid">00:00</span></dd></div>
+      <div class="t fase"><dt>Tilstand</dt><dd style="font-size:15px"><span id="numFase">fast</span></dd></div>
+      <div class="t kap"><dt>Energi per grad akkurat nå</dt><dd><span id="numKap">2 100</span> <small>J/°C</small></dd></div>
+    </dl>
+    <p class="fasestrek" id="fasestrek">Sett i gang varmen, så begynner kurven å tegne seg.</p>
+  </div>
+
+  <div class="panel konto">
+    <h2>Hvor den tilførte energien tar veien</h2>
+    <div class="bar" role="img" aria-label="Stablet stolpe: hvor mye av tilført energi som er gått til bevegelse og hvor mye til binding">
+      <div class="seg" id="segKin"><span id="lblKin"></span></div>
+      <div class="seg" id="segBind"><span id="lblBind"></span></div>
+    </div>
+    <dl class="legend">
+      <div class="leg k">
+        <dt>Bevegelsesenergi — partiklene rister eller farer fortere</dt>
+        <dd><span id="numKin">0</span> <small>kJ</small></dd>
+        <span class="om">Denne kontoen får påfyll når kurven stiger.</span>
+      </div>
+      <div class="leg b">
+        <dt>Bindingsenergi — partiklene rives fra hverandre</dt>
+        <dd><span id="numBind">0</span> <small>kJ</small></dd>
+        <span class="om">Denne får påfyll når kurven er flat.</span>
+      </div>
+    </dl>
+    <div class="meter">
+      <div class="rad"><span>Middels bevegelsesenergi per partikkel</span><b><span id="numEk">5,1</span> · 10⁻²¹ J</b></div>
+      <div class="spor"><i id="sporEk" style="width:20%"></i></div>
+      <p class="note">Denne følger temperaturen i kelvin — ikke tilført energi. Det er derfor den står bom stille mens du fortsatt fyller på.</p>
+    </div>
+  </div>
+
+  <div class="panel duo">
+    <h2>Samme spørsmål, større kar</h2>
+    <div class="par">
+      <div class="kar">
+        <h3>Badekar med lunkent vann</h3>
+        <div class="vol"><i id="volBad" style="width:100%"></i></div>
+        <div class="stor"><span id="badE">25,1</span> MJ</div>
+        <div class="liten">150 L · <span id="badT">40</span> °C</div>
+      </div>
+      <div class="kar">
+        <h3>Kopp kokende kaffe</h3>
+        <div class="vol"><i style="width:0.17%"></i></div>
+        <div class="stor"><span id="kaffeE">0,099</span> MJ</div>
+        <div class="liten">0,25 L · 95 °C</div>
+      </div>
+    </div>
+    <div class="ctrl">
+      <label for="bt">Badetemperatur <b><span id="btv">40</span> °C</b></label>
+      <input type="range" id="bt" min="20" max="45" step="1" value="40">
+    </div>
+    <p class="dom" id="domsordet"></p>
+    <p class="kilde">Indre energi regnet fra 0 °C, som referansepunkt. Bare differansen har mening — det er hele poenget med at ingenting «har» en absolutt mengde varme.</p>
+  </div>
+
+  <div class="panel teach">
+    <h2>Bruk modellen slik</h2>
+    <ol>
+      <li>Skru på varmen med <strong>vann</strong> og se på termometeret alene. Første flate strekk kommer ved 0 °C. Effekten står på, tida går, energien renner inn — og temperaturen rikker seg ikke. <strong>Still spørsmålet før du ser ned:</strong> hvor blir det av energien?</li>
+      <li>Se så på partikkelboksen i det samme strekket. Gitteret løses opp, én partikkel om gangen. <strong>Det er der energien går.</strong> Den brukes til å rive partiklene løs fra hverandre, ikke til å få dem til å fare fortere.</li>
+      <li>Følg måleren nederst i energiregnskapet. Middels bevegelsesenergi per partikkel står stille gjennom hele det flate strekket. Det er den samme størrelsen termometeret måler — derfor er de to stille samtidig.</li>
+      <li>La den gå videre til 100 °C. Det andre flate strekket er <strong>nesten sju ganger så langt som det første</strong>. Å koke bort vannet koster over fem ganger så mye som å varme det hele veien fra 0 til 100.</li>
+      <li>Hold øye med <strong>«energi per grad»</strong> i avlesninga. På et flatt strekk står det <em>uendelig</em>: du kan fylle på så mye du vil uten at temperaturen rikker seg. Det er den samme opplysningen som det flate strekket, sagt som tall.</li>
+      <li>Bytt til <strong>jern</strong> og les det samme tallet. Ett kilo jern trenger 450 J per grad; ett kilo vann trenger 4180. <strong>Det er varmekapasitet</strong> — ikke en tabellverdi å pugge, men hvor mye energi én grad koster. Sammenlign tallene, ikke stigningen i figuren: x-aksen skalerer om for hvert stoff, så to kurver kan ikke måles mot hverandre med øyet.</li>
+      <li>Dra opp massen. Kurven får nøyaktig samme form, men strekker seg utover i x-retning, og «energi per grad» vokser i takt. Formen hører til <em>stoffet</em>; lengden hører til <em>mengden</em>.</li>
+      <li><strong>Klikk hvor som helst i grafen</strong> for å hoppe dit. Nyttig når du vil stå stille midt i et flatt strekk og se på boksen.</li>
+    </ol>
+    <p><strong>Til klasserommet:</strong> la elevene tegne kurven på forhånd, før de ser modellen. De aller fleste tegner en rett linje fra iskaldt til kokende. Å bomme på den tegningen først er verdt mer enn å få den riktig servert — og den ferdige kurven blir noe de kjenner igjen resten av året.</p>
+    <p class="kilde">Verdier: c og spesifikk smelte-/fordampningsvarme er tabellverdier ved 1 atm. Partikkelboksen er en skjematisk modell, ikke en molekyldynamikksimulering — antall partikler og fartsskala er valgt for å være lesbare, ikke for å være riktige.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var K_B = 1.380649e-23;
+  var TIDSFAKTOR = 150;
+
+  var STOFF = {
+    vann:   { navn: "Vann",   cS: 2100, cL: 4180, cG: 2010, Tf: 0,    Tk: 100,  Lf: 334000, Lk: 2260000, start: -25,  over: 40,  fast: "is",            vaeske: "vann",           gass: "vanndamp" },
+    etanol: { navn: "Etanol", cS: 2400, cL: 2440, cG: 1430, Tf: -114, Tk: 78,   Lf: 108000, Lk: 855000,  start: -140, over: 40,  fast: "fast etanol",   vaeske: "flytende etanol", gass: "etanoldamp" },
+    jern:   { navn: "Jern",   cS: 450,  cL: 820,  cG: 450,  Tf: 1538, Tk: 2861, Lf: 247000, Lk: 6090000, start: 20,   over: 100, fast: "fast jern",     vaeske: "smeltet jern",   gass: "jerndamp" }
+  };
+
+  var el = {};
+  ["boks","graf","m","mv","p","pv","play","reset","medKok",
+   "numT","numE","numTid","numFase","numKap","fasestrek",
+   "segKin","segBind","lblKin","lblBind","numKin","numBind","numEk","sporEk",
+   "bt","btv","badE","kaffeE","badT","volBad","domsordet"].forEach(function (id) { el[id] = document.getElementById(id); });
+
+  var cb = el.boks.getContext("2d");
+  var cg = el.graf.getContext("2d");
+
+  var st = { stoff: "vann", E: 0, t: 0, kjorer: false, spor: [] };
+
+  function S() { return STOFF[st.stoff]; }
+  function masse() { return parseFloat(el.m.value); }
+  function effekt() { return parseFloat(el.p.value); }
+  function medKok() { return el.medKok.checked; }
+
+  /* ---- energibudsjett ---------------------------------------------------- */
+
+  function budsjett() {
+    var s = S(), m = masse();
+    var b = {
+      e1: m * s.cS * (s.Tf - s.start),
+      e2: m * s.Lf,
+      e3: m * s.cL * (s.Tk - s.Tf),
+      e4: medKok() ? m * s.Lk : 0,
+      e5: medKok() ? m * s.cG * s.over : 0
+    };
+    b.tot = b.e1 + b.e2 + b.e3 + b.e4 + b.e5;
+    return b;
+  }
+
+  function klem(x, lo, hi) { return x < lo ? lo : (x > hi ? hi : x); }
+
+  // Alt modellen viser leses ut av én tilstand: hvor mye energi som er tilført.
+  // Ingen integrasjon som kan drifte — E er den eneste akkumulatoren.
+  function lesUt(E) {
+    var s = S(), m = masse(), b = budsjett();
+    E = klem(E, 0, b.tot);
+    var T, fase, frac = 0;
+    var a1 = b.e1, a2 = a1 + b.e2, a3 = a2 + b.e3, a4 = a3 + b.e4;
+
+    var c = 0;
+    if (E < a1)       { T = s.start + E / (m * s.cS);        fase = "fast";    c = s.cS; }
+    else if (E < a2)  { T = s.Tf;   frac = (E - a1) / b.e2;  fase = "smelter";           }
+    else if (E < a3)  { T = s.Tf + (E - a2) / (m * s.cL);    fase = "vaeske";  c = s.cL; }
+    else if (E < a4)  { T = s.Tk;   frac = (E - a3) / b.e4;  fase = "koker";             }
+    else              { T = s.Tk + (b.e5 > 0 ? (E - a4) / (m * s.cG) : 0); fase = "gass"; c = s.cG; }
+
+    var kin  = klem(E, 0, b.e1) + klem(E - a2, 0, b.e3) + klem(E - a4, 0, b.e5);
+    var bind = klem(E - a1, 0, b.e2) + klem(E - a3, 0, b.e4);
+
+    return { T: T, fase: fase, frac: frac, kin: kin, bind: bind, tot: b.tot, E: E, c: c };
+  }
+
+  /* ---- partikler --------------------------------------------------------- */
+
+  var N = 64, KOL = 8, deler = [];
+  for (var i = 0; i < N; i++) {
+    deler.push({
+      hx: (i % KOL + 0.5) / KOL, hy: (Math.floor(i / KOL) + 0.5) / KOL,
+      f1: Math.random() * 6.28, f2: Math.random() * 6.28,
+      w1: 0.8 + Math.random() * 0.9, w2: 0.8 + Math.random() * 0.9,
+      x: 0, y: 0, vx: 0, vy: 0, satt: false
+    });
+  }
+  // Rekkefølgen partiklene løsner i. Fast, ikke tilfeldig per frame — ellers
+  // ville boksen flimre mellom to tilstander midt i et faseskifte.
+  var rekke = deler.map(function (_, i) { return i; });
+  for (var r = rekke.length - 1; r > 0; r--) {
+    var j = Math.floor(Math.random() * (r + 1)), tmp = rekke[r]; rekke[r] = rekke[j]; rekke[j] = tmp;
+  }
+  var modus = new Array(N).fill(0);   // 0 = gitter, 1 = væske, 2 = gass
+
+  function settModus(u) {
+    var antVaeske = 0, antGass = 0;
+    if (u.fase === "fast")         { antVaeske = 0; antGass = 0; }
+    else if (u.fase === "smelter") { antVaeske = Math.round(u.frac * N); }
+    else if (u.fase === "vaeske")  { antVaeske = N; }
+    else if (u.fase === "koker")   { antGass = Math.round(u.frac * N); antVaeske = N - antGass; }
+    else                           { antGass = N; }
+
+    for (var i = 0; i < N; i++) modus[rekke[i]] = i < antGass ? 2 : (i < antGass + antVaeske ? 1 : 0);
+  }
+
+  function fartsskala(T) { return Math.sqrt(Math.max(T + 273.15, 1) / 300); }
+
+  function flyttPartikler(u, dt) {
+    var v0 = 0.30 * fartsskala(u.T);
+    for (var i = 0; i < N; i++) {
+      var d = deler[i], mo = modus[i];
+      if (mo === 0) { d.satt = false; continue; }
+      if (!d.satt) {                                  // slippes løs fra gitterplassen sin
+        d.x = d.hx; d.y = d.hy;
+        var vin = Math.random() * 6.28;
+        d.vx = Math.cos(vin); d.vy = Math.sin(vin);
+        d.satt = true;
+      }
+      var fart = mo === 2 ? v0 * 2.1 : v0;
+      var tak = mo === 2 ? 0.03 : 0.42;               // væske holder seg i bunnen
+      d.x += d.vx * fart * dt; d.y += d.vy * fart * dt;
+      if (d.x < 0.03) { d.x = 0.03; d.vx = Math.abs(d.vx); }
+      if (d.x > 0.97) { d.x = 0.97; d.vx = -Math.abs(d.vx); }
+      if (d.y < tak)  { d.y = tak;  d.vy = Math.abs(d.vy); }
+      if (d.y > 0.97) { d.y = 0.97; d.vy = -Math.abs(d.vy); }
+    }
+  }
+
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  function tegnBoks(u, tid) {
+    var W = el.boks.width, H = el.boks.height;
+    var pad = 40, top = 96, bunn = H - 56;
+    var bw = W - pad * 2, bh = bunn - top;
+
+    cb.clearRect(0, 0, W, H);
+
+    cb.fillStyle = css("--ink-faint");
+    cb.font = "500 22px " + css("--mono");
+    cb.textAlign = "left"; cb.textBaseline = "top";
+    cb.fillText("PARTIKKELBOKS", pad, 32);
+
+    cb.fillStyle = css("--ink");
+    cb.font = "26px " + css("--sans");
+    var navn = u.fase === "fast" ? S().fast : u.fase === "gass" ? S().gass : u.fase === "vaeske" ? S().vaeske
+             : u.fase === "smelter" ? "smelter" : "koker";
+    cb.fillText(navn, pad, 60);
+
+    cb.strokeStyle = css("--line"); cb.lineWidth = 2;
+    cb.strokeRect(pad, top, bw, bh);
+
+    var amp = 0.030 * fartsskala(u.T);
+    var rad = 15;
+
+    for (var i = 0; i < N; i++) {
+      var d = deler[i], px, py, farge;
+      if (modus[i] === 0) {
+        px = d.hx + amp * Math.sin(tid * d.w1 + d.f1);
+        py = d.hy + amp * Math.cos(tid * d.w2 + d.f2);
+        farge = css("--pot");
+      } else if (modus[i] === 1) {
+        px = d.x; py = d.y; farge = css("--kin");
+      } else {
+        px = d.x; py = d.y; farge = css("--therm");
+      }
+      cb.fillStyle = farge;
+      cb.globalAlpha = modus[i] === 2 ? 0.85 : 1;
+      cb.beginPath();
+      cb.arc(pad + px * bw, top + py * bh, rad, 0, Math.PI * 2);
+      cb.fill();
+      cb.globalAlpha = 1;
+    }
+
+    // gitterlinjer mellom partiklene som fortsatt sitter fast
+    cb.strokeStyle = css("--pot"); cb.globalAlpha = 0.28; cb.lineWidth = 2;
+    for (var a = 0; a < N; a++) {
+      if (modus[a] !== 0) continue;
+      var da = deler[a];
+      for (var b2 = a + 1; b2 < N; b2++) {
+        if (modus[b2] !== 0) continue;
+        var db = deler[b2];
+        if (Math.abs(da.hx - db.hx) + Math.abs(da.hy - db.hy) > 1.05 / KOL + 0.001) continue;
+        cb.beginPath();
+        cb.moveTo(pad + (da.hx + amp * Math.sin(tid * da.w1 + da.f1)) * bw, top + (da.hy + amp * Math.cos(tid * da.w2 + da.f2)) * bh);
+        cb.lineTo(pad + (db.hx + amp * Math.sin(tid * db.w1 + db.f1)) * bw, top + (db.hy + amp * Math.cos(tid * db.w2 + db.f2)) * bh);
+        cb.stroke();
+      }
+    }
+    cb.globalAlpha = 1;
+
+    // varmen som kommer inn nedenfra
+    cb.strokeStyle = css("--therm"); cb.lineWidth = 4; cb.globalAlpha = st.kjorer ? 0.9 : 0.25;
+    for (var f = 0; f < 5; f++) {
+      var fx = pad + bw * (0.14 + f * 0.18);
+      var bl = 6 * Math.sin(tid * 3 + f);
+      cb.beginPath();
+      cb.moveTo(fx + bl, bunn + 34);
+      cb.lineTo(fx, bunn + 8);
+      cb.stroke();
+      cb.beginPath();
+      cb.moveTo(fx - 9, bunn + 18); cb.lineTo(fx, bunn + 8); cb.lineTo(fx + 9, bunn + 18);
+      cb.stroke();
+    }
+    cb.globalAlpha = 1;
+    cb.fillStyle = css("--therm");
+    cb.font = "500 20px " + css("--mono");
+    cb.textAlign = "center";
+    cb.fillText(effekt() + " W", W / 2, bunn + 40);
+  }
+
+  /* ---- graf -------------------------------------------------------------- */
+
+  var gramme = { v: 150, h: 60, t: 70, b: 96 };
+
+  function grafSkala() {
+    var s = S(), b = budsjett();
+    var tHoy = b.e5 > 0 ? s.Tk + s.over : s.Tk;
+    var lo = s.start - Math.max((tHoy - s.start) * 0.06, 4);
+    var hi = tHoy + Math.max((tHoy - s.start) * 0.06, 4);
+    return { Emax: Math.max(b.tot, 1), Tlo: lo, Thi: hi };
+  }
+
+  function gx(E, sk) { return gramme.v + (E / sk.Emax) * (el.graf.width - gramme.v - gramme.h); }
+  function gy(T, sk) { return el.graf.height - gramme.b - ((T - sk.Tlo) / (sk.Thi - sk.Tlo)) * (el.graf.height - gramme.t - gramme.b); }
+
+  function pentTall(x) {
+    return x >= 1000 ? Math.round(x / 100) * 100 : x >= 100 ? Math.round(x / 10) * 10 : Math.round(x);
+  }
+
+  function tegnGraf(u) {
+    var W = el.graf.width, H = el.graf.height, s = S(), sk = grafSkala();
+    cg.clearRect(0, 0, W, H);
+
+    cg.font = "500 22px " + css("--mono");
+    cg.fillStyle = css("--ink-faint");
+    cg.textAlign = "left"; cg.textBaseline = "top";
+    cg.fillText("TEMPERATUR MOT TILFØRT ENERGI", gramme.v, 26);
+
+    // vannrette hjelpelinjer
+    cg.textAlign = "right"; cg.textBaseline = "middle";
+    cg.font = "22px " + css("--mono");
+    var spenn = sk.Thi - sk.Tlo;
+    var steg = Math.pow(10, Math.floor(Math.log10(spenn / 5)));
+    if (spenn / steg > 12) steg *= 5; else if (spenn / steg > 6) steg *= 2;
+    var t0 = Math.ceil(sk.Tlo / steg) * steg;
+    for (var T = t0; T <= sk.Thi; T += steg) {
+      var yy = gy(T, sk);
+      cg.strokeStyle = css("--line"); cg.lineWidth = 1.5; cg.setLineDash([5, 9]);
+      cg.beginPath(); cg.moveTo(gramme.v, yy); cg.lineTo(W - gramme.h, yy); cg.stroke();
+      cg.setLineDash([]);
+      cg.fillStyle = css("--ink-faint");
+      cg.fillText(Math.round(T) + "°", gramme.v - 14, yy);
+    }
+
+    // smelte- og kokepunkt
+    [[s.Tf, "smeltepunkt " + s.Tf + " °C"], [s.Tk, "kokepunkt " + s.Tk + " °C"]].forEach(function (par) {
+      var yy = gy(par[0], sk);
+      cg.strokeStyle = css("--pot"); cg.lineWidth = 2; cg.setLineDash([10, 7]); cg.globalAlpha = 0.55;
+      cg.beginPath(); cg.moveTo(gramme.v, yy); cg.lineTo(W - gramme.h, yy); cg.stroke();
+      cg.setLineDash([]); cg.globalAlpha = 1;
+      cg.fillStyle = css("--pot"); cg.textAlign = "right"; cg.font = "20px " + css("--mono");
+      cg.fillText(par[1], W - gramme.h, yy - 20);
+    });
+
+    // akser
+    cg.strokeStyle = css("--ink-faint"); cg.lineWidth = 2;
+    cg.beginPath();
+    cg.moveTo(gramme.v, gramme.t); cg.lineTo(gramme.v, H - gramme.b); cg.lineTo(W - gramme.h, H - gramme.b);
+    cg.stroke();
+
+    // x-merker
+    cg.textAlign = "center"; cg.textBaseline = "top"; cg.font = "22px " + css("--mono");
+    cg.fillStyle = css("--ink-faint");
+    for (var k = 0; k <= 4; k++) {
+      var Ex = sk.Emax * k / 4;
+      cg.fillText(pentTall(Ex / 1000) + "", gx(Ex, sk), H - gramme.b + 14);
+    }
+    cg.fillText("tilført energi (kJ)", (gramme.v + W - gramme.h) / 2, H - gramme.b + 52);
+
+    // kurven så langt
+    if (st.spor.length > 1) {
+      cg.strokeStyle = css("--therm"); cg.lineWidth = 6; cg.lineJoin = "round"; cg.lineCap = "round";
+      cg.beginPath();
+      for (var i = 0; i < st.spor.length; i++) {
+        var pt = st.spor[i], X = gx(pt[0], sk), Y = gy(pt[1], sk);
+        if (i === 0) cg.moveTo(X, Y); else cg.lineTo(X, Y);
+      }
+      cg.stroke();
+    }
+
+    // markør
+    var mx = gx(u.E, sk), my = gy(u.T, sk);
+    cg.strokeStyle = css("--ink-faint"); cg.lineWidth = 1.5; cg.setLineDash([4, 7]);
+    cg.beginPath(); cg.moveTo(mx, H - gramme.b); cg.lineTo(mx, my); cg.lineTo(gramme.v, my); cg.stroke();
+    cg.setLineDash([]);
+    cg.fillStyle = css("--therm");
+    cg.beginPath(); cg.arc(mx, my, 11, 0, Math.PI * 2); cg.fill();
+    cg.strokeStyle = css("--surface"); cg.lineWidth = 3; cg.stroke();
+  }
+
+  /* ---- avlesning --------------------------------------------------------- */
+
+  var FASETEKST = {
+    fast:     "Kurven <em>stiger</em>. All energien går til å få partiklene til å riste kraftigere.",
+    smelter:  "Kurven er <em>flat</em>. Energien river partiklene løs fra gitteret — den får dem ikke til å riste fortere.",
+    vaeske:   "Kurven <em>stiger</em>. Partiklene er løse, og energien går igjen til fart.",
+    koker:    "Kurven er <em>flat</em>. Nå rives partiklene helt fra hverandre. Dette strekket er det dyreste av alle.",
+    gass:     "Kurven <em>stiger</em> igjen, og brattere enn før — det er lite som skal til for å varme en gass."
+  };
+  var FASENAVN = { fast: "fast", smelter: "fast + væske", vaeske: "væske", koker: "væske + gass", gass: "gass" };
+
+  function skriv(u) {
+    el.numT.textContent = u.T.toFixed(1).replace(".", ",");
+    el.numE.textContent = Math.round(u.E / 1000).toLocaleString("nb-NO");
+    var sek = st.t;
+    el.numTid.textContent = String(Math.floor(sek / 60)).padStart(2, "0") + ":" + String(Math.floor(sek % 60)).padStart(2, "0");
+    el.numFase.textContent = FASENAVN[u.fase];
+    var kapDd = el.numKap.parentNode;
+    if (u.c > 0) {
+      kapDd.className = "";
+      el.numKap.textContent = Math.round(u.c * masse()).toLocaleString("nb-NO");
+      kapDd.querySelector("small").textContent = "J/°C";
+    } else {
+      // Under et faseskifte stiger temperaturen ikke uansett hvor mye du fyller på.
+      // Da finnes ikke tallet — og det er verdt å vise som et fravær, ikke som null.
+      kapDd.className = "stille";
+      el.numKap.textContent = "uendelig";
+      kapDd.querySelector("small").textContent = "— temperaturen rikker seg ikke";
+    }
+    el.fasestrek.innerHTML = FASETEKST[u.fase];
+
+    var sum = Math.max(u.kin + u.bind, 1);
+    var pk = (u.kin / sum) * 100, pb = (u.bind / sum) * 100;
+    el.segKin.style.width = pk + "%";
+    el.segBind.style.width = pb + "%";
+    el.lblKin.textContent = pk > 16 ? "Bevegelse" : "";
+    el.lblBind.textContent = pb > 16 ? "Binding" : "";
+    el.numKin.textContent = Math.round(u.kin / 1000).toLocaleString("nb-NO");
+    el.numBind.textContent = Math.round(u.bind / 1000).toLocaleString("nb-NO");
+
+    var Ek = 1.5 * K_B * (u.T + 273.15);
+    el.numEk.textContent = (Ek * 1e21).toFixed(1).replace(".", ",");
+    var sk = grafSkala();
+    el.sporEk.style.width = klem(((u.T - sk.Tlo) / (sk.Thi - sk.Tlo)) * 100, 0, 100) + "%";
+  }
+
+  /* ---- badekar mot kaffekopp --------------------------------------------- */
+
+  function duo() {
+    var bt = parseFloat(el.bt.value);
+    var bad = 150 * 4180 * bt;          // 150 L vann, regnet fra 0 °C
+    var kaffe = 0.25 * 4180 * 95;
+    el.badT.textContent = bt;
+    el.btv.textContent = bt;
+    el.badE.textContent = (bad / 1e6).toFixed(1).replace(".", ",");
+    el.kaffeE.textContent = (kaffe / 1e6).toFixed(3).replace(".", ",");
+    el.domsordet.innerHTML =
+      "Kaffen er <strong>" + (95 - bt) + " grader varmere</strong>, men badekaret har <strong>"
+      + Math.round(bad / kaffe) + " ganger så mye indre energi</strong>. "
+      + "Temperatur er <strong>gjennomsnittet</strong> per partikkel. Indre energi er <strong>summen</strong> over alle sammen — "
+      + "og i badekaret er det 600 ganger så mange av dem.";
+  }
+
+  /* ---- kjøring ----------------------------------------------------------- */
+
+  function nullstill(beholdE) {
+    if (!beholdE) { st.E = 0; st.t = 0; st.spor = []; }
+    var b = budsjett();
+    st.E = klem(st.E, 0, b.tot);
+    st.kjorer = false;
+    el.play.textContent = "Skru på varmen";
+    for (var i = 0; i < N; i++) deler[i].satt = false;
+    var u = lesUt(st.E);
+    settModus(u);
+    if (st.spor.length === 0) st.spor.push([st.E, u.T]);
+    tegn(u, 0);
+  }
+
+  function tegn(u, tid) { tegnBoks(u, tid); tegnGraf(u); skriv(u); }
+
+  var forrige = 0;
+  function loop(ts) {
+    if (!forrige) forrige = ts;
+    var dt = Math.min((ts - forrige) / 1000, 0.05);
+    forrige = ts;
+
+    var b = budsjett();
+    if (st.kjorer) {
+      var dtSim = dt * TIDSFAKTOR;
+      st.E += effekt() * dtSim;
+      st.t += dtSim;
+      if (st.E >= b.tot) {
+        st.E = b.tot; st.kjorer = false; el.play.textContent = "Ferdig — nullstill";
+      }
+    }
+
+    var u = lesUt(st.E);
+    if (st.kjorer) {
+      var sis = st.spor[st.spor.length - 1];
+      if (!sis || Math.abs(u.E - sis[0]) > b.tot / 400) st.spor.push([u.E, u.T]);
+    }
+    settModus(u);
+    flyttPartikler(u, dt);
+    tegn(u, ts / 1000);
+
+    requestAnimationFrame(loop);
+  }
+
+  /* ---- hendelser --------------------------------------------------------- */
+
+  Array.prototype.forEach.call(document.querySelectorAll("#stoff button"), function (b) {
+    b.addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll("#stoff button"), function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      st.stoff = b.dataset.s;
+      nullstill(false);
+    });
+  });
+
+  el.m.addEventListener("input", function () {
+    el.mv.textContent = masse().toFixed(2).replace(".", ",");
+    // Sporet er tegnet i joule, ikke i prosent, så det ville ligget feil i grafen
+    // etter et masseskifte. Enklere og ærligere å starte kurven på nytt.
+    nullstill(false);
+  });
+  el.p.addEventListener("input", function () { el.pv.textContent = effekt(); });
+  el.medKok.addEventListener("change", function () { nullstill(false); });
+
+  el.play.addEventListener("click", function () {
+    var b = budsjett();
+    if (st.E >= b.tot - 1) { nullstill(false); return; }
+    st.kjorer = !st.kjorer;
+    el.play.textContent = st.kjorer ? "Pause" : "Fortsett";
+  });
+  el.reset.addEventListener("click", function () { nullstill(false); });
+
+  el.graf.addEventListener("click", function (ev) {
+    var rekt = el.graf.getBoundingClientRect();
+    var x = (ev.clientX - rekt.left) / rekt.width * el.graf.width;
+    var sk = grafSkala(), b = budsjett();
+    var E = ((x - gramme.v) / (el.graf.width - gramme.v - gramme.h)) * sk.Emax;
+    E = klem(E, 0, b.tot);
+    st.kjorer = false;
+    el.play.textContent = "Fortsett";
+    st.E = E;
+    st.t = E / effekt();
+    // Tegn opp hele kurven fram til punktet, så grafen ikke ser ut som et hopp.
+    st.spor = [];
+    for (var f = 0; f <= 200; f++) {
+      var Ei = E * f / 200;
+      st.spor.push([Ei, lesUt(Ei).T]);
+    }
+    for (var i = 0; i < N; i++) deler[i].satt = false;
+  });
+
+  el.bt.addEventListener("input", duo);
+
+  el.mv.textContent = masse().toFixed(2).replace(".", ",");
+  el.pv.textContent = effekt();
+  duo();
+  nullstill(false);
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

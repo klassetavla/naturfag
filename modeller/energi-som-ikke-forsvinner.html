@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Energi som ikke forsvinner</title>
+<style>
+  :root {
+    --ground: #f2f4f6;
+    --surface: #ffffff;
+    --surface-2: #e8ecef;
+    --ink: #131b22;
+    --ink-soft: #4a5865;
+    --ink-faint: #77848f;
+    --line: #d5dce1;
+    --accent: #1d5b7a;
+
+    --kin: #1f7ae0;
+    --pot: #6b4fc4;
+    --therm: #d1622a;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+      --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+      --line: #26313a; --accent: #6bb6d6;
+      --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1317; --surface: #141c22; --surface-2: #1b252c;
+    --ink: #e3e9ed; --ink-soft: #a2b0ba; --ink-faint: #7b8892;
+    --line: #26313a; --accent: #6bb6d6;
+    --kin: #4d9bf0; --pot: #9b83e8; --therm: #ef8b52;
+  }
+  :root[data-theme="light"] {
+    --ground: #f2f4f6; --surface: #ffffff; --surface-2: #e8ecef;
+    --ink: #131b22; --ink-soft: #4a5865; --ink-faint: #77848f;
+    --line: #d5dce1; --accent: #1d5b7a;
+    --kin: #1f7ae0; --pot: #6b4fc4; --therm: #d1622a;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 32px 18px 72px; display: flex; flex-direction: column; gap: 26px; }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .11em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 650; letter-spacing: -.02em; line-height: 1.15; text-wrap: balance; }
+  .lede { color: var(--ink-soft); max-width: 66ch; font-size: 16px; }
+
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .stage { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+
+  #sim { display: block; width: 100%; height: auto; border-radius: 8px; }
+
+  .controls { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl label { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ctrl label b { font-family: var(--mono); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; text-transform: none; letter-spacing: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  .buttons { display: flex; gap: 8px; }
+  button {
+    flex: 1; font: inherit; font-size: 14px; font-weight: 550; padding: 9px 12px; cursor: pointer;
+    background: var(--accent); color: var(--surface); border: 1px solid var(--accent); border-radius: 5px;
+  }
+  button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  button:hover { filter: brightness(1.08); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* energy bar */
+  .energy { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .energy h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--mono); font-weight: 500; }
+
+  .bar { display: flex; height: 46px; border-radius: 5px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); }
+  .seg { transition: width .06s linear; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .seg span { font-family: var(--mono); font-size: 12px; color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; padding: 0 6px; }
+  #segPot { background: var(--pot); }
+  #segKin { background: var(--kin); }
+  #segTherm { background: var(--therm); }
+
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .leg { display: flex; flex-direction: column; gap: 2px; padding-left: 11px; border-left: 3px solid var(--line); }
+  .leg.k { border-left-color: var(--kin); }
+  .leg.p { border-left-color: var(--pot); }
+  .leg.t { border-left-color: var(--therm); }
+  .leg dt { font-size: 12px; color: var(--ink-soft); }
+  .leg dd { font-family: var(--mono); font-size: 17px; font-variant-numeric: tabular-nums; }
+  .leg dd small { font-size: 12px; color: var(--ink-faint); }
+
+  .total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 1px solid var(--line); gap: 12px; flex-wrap: wrap; }
+  .total dt { font-size: 13px; color: var(--ink-soft); }
+  .total dd { font-family: var(--mono); font-size: 19px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .total .note { font-size: 12.5px; color: var(--ink-faint); flex-basis: 100%; }
+
+  .teach { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--accent); }
+  .teach h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .teach p { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach strong { color: var(--ink); font-weight: 600; }
+  .teach ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .teach li { color: var(--ink-soft); font-size: 15px; max-width: 70ch; }
+  .teach li::marker { color: var(--accent); font-family: var(--mono); font-size: 13px; }
+
+  .hint { font-size: 13px; color: var(--ink-faint); font-style: italic; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Naturfag · Mekanisk energi</div>
+    <h1>Energien forsvinner ikke — den blir dårligere</h1>
+    <p class="lede">Slipp ballen og se på den brede stripen: den skifter farge, men den blir aldri kortere. Det er energibevaring. Skru ned spretten, så ser du hvor energien tar veien.</p>
+  </header>
+
+  <div class="stage">
+    <div class="panel"><canvas id="sim" width="1400" height="900" aria-label="Simulering av sprettball med energioverganger"></canvas></div>
+
+    <div class="panel controls">
+      <div class="ctrl">
+        <label for="h">Slipphøyde <b><span id="hv">2.00</span> m</b></label>
+        <input type="range" id="h" min="0.5" max="3" step="0.05" value="2">
+      </div>
+      <div class="ctrl">
+        <label for="m">Masse <b><span id="mv">1.00</span> kg</b></label>
+        <input type="range" id="m" min="0.2" max="3" step="0.05" value="1">
+      </div>
+      <div class="ctrl">
+        <label for="e">Sprett <b><span id="ev">0.80</span></b></label>
+        <input type="range" id="e" min="0.5" max="1" step="0.01" value="0.8">
+        <span class="hint" id="ehint">Litt energi blir termisk for hvert sprett.</span>
+      </div>
+      <div class="buttons">
+        <button id="play">Slipp</button>
+        <button id="reset" class="ghost">Nullstill</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel energy">
+    <h2>Energiregnskap</h2>
+    <div class="bar" role="img" aria-label="Stablet stolpe som viser fordelingen mellom potensiell, kinetisk og termisk energi">
+      <div class="seg" id="segPot"><span id="lblPot"></span></div>
+      <div class="seg" id="segKin"><span id="lblKin"></span></div>
+      <div class="seg" id="segTherm"><span id="lblTherm"></span></div>
+    </div>
+
+    <dl class="legend">
+      <div class="leg p"><dt>Potensiell — stillingsenergi</dt><dd><span id="numPot">0.0</span> <small>J</small></dd></div>
+      <div class="leg k"><dt>Kinetisk — bevegelsesenergi</dt><dd><span id="numKin">0.0</span> <small>J</small></dd></div>
+      <div class="leg t"><dt>Termisk — spredt som varme</dt><dd><span id="numTherm">0.0</span> <small>J</small></dd></div>
+    </dl>
+
+    <div class="total">
+      <dt>Total energi</dt>
+      <dd><span id="numTot">0.0</span> J</dd>
+      <span class="note">Legg merke til at dette tallet står stille mens ballen spretter. Det er hele poenget.</span>
+    </div>
+  </div>
+
+  <div class="panel teach">
+    <h2>Bruk modellen slik</h2>
+    <ol>
+      <li>Sett <strong>sprett = 1.00</strong> og slipp. Ballen spretter like høyt hver gang, og den termiske delen forblir null. Dette er den idealiserte lærebokversjonen — <strong>mekanisk energi bevart</strong>.</li>
+      <li>Dra spretten ned til 0.80 og slipp igjen. Nå vokser det oransje feltet for hvert sprett, mens totalen står stille. Spør deg selv: <strong>hvor kom det oransje fra?</strong></li>
+      <li>Se på toppunktene. Der er all energi potensiell. Se i det ballen treffer bakken: der er all den mekaniske energien kinetisk.</li>
+      <li>Skru opp massen. Energien dobles når massen dobles — men <strong>ballen faller like fort</strong>. Det er en av de mest seiglivede misoppfatningene på ungdomstrinnet.</li>
+      <li>La den gå til den ligger stille. All energien er nå termisk. Ingenting er borte, men ingenting kan brukes til noe heller. <strong>Det er energikvalitet.</strong></li>
+    </ol>
+    <p><strong>Til klasserommet:</strong> spør elevene hvor energien blir av <em>før</em> du viser den oransje søylen. «Den blir brukt opp» er det vanligste svaret, og det er nettopp den misoppfatningen modellen skal utfordre. La dem se at stripen ikke blir kortere.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var G = 9.81;
+  var cv = document.getElementById("sim");
+  var ctx = cv.getContext("2d");
+
+  var el = {
+    h: document.getElementById("h"), m: document.getElementById("m"), e: document.getElementById("e"),
+    hv: document.getElementById("hv"), mv: document.getElementById("mv"), ev: document.getElementById("ev"),
+    ehint: document.getElementById("ehint"),
+    play: document.getElementById("play"), reset: document.getElementById("reset"),
+    segPot: document.getElementById("segPot"), segKin: document.getElementById("segKin"), segTherm: document.getElementById("segTherm"),
+    lblPot: document.getElementById("lblPot"), lblKin: document.getElementById("lblKin"), lblTherm: document.getElementById("lblTherm"),
+    numPot: document.getElementById("numPot"), numKin: document.getElementById("numKin"),
+    numTherm: document.getElementById("numTherm"), numTot: document.getElementById("numTot")
+  };
+
+  var st = { y: 2, v: 0, therm: 0, running: false, peaks: [] };
+
+  function h0() { return parseFloat(el.h.value); }
+  function mass() { return parseFloat(el.m.value); }
+  function rest() { return parseFloat(el.e.value); }
+  function total() { return mass() * G * h0(); }
+
+  function reset() {
+    st.y = h0(); st.v = 0; st.therm = 0; st.peaks = [];
+    st.running = false; el.play.textContent = "Slipp";
+    draw(); readout();
+  }
+
+  function step(dt) {
+    st.v -= G * dt;
+    st.y += st.v * dt;
+    if (st.y <= 0) {
+      st.y = 0;
+      var before = 0.5 * mass() * st.v * st.v;
+      st.v = -st.v * rest();
+      var after = 0.5 * mass() * st.v * st.v;
+      st.therm += before - after;
+      if (Math.abs(st.v) < 0.25) {           // kom til ro
+        st.therm = total(); st.v = 0; st.y = 0;
+        st.running = false; el.play.textContent = "Slipp igjen";
+      } else {
+        st.peaks.push((0.5 * st.v * st.v) / G);
+        if (st.peaks.length > 14) st.peaks.shift();
+      }
+    }
+  }
+
+  function readout() {
+    var m = mass(), tot = total();
+    var pot = m * G * st.y;
+    var kin = 0.5 * m * st.v * st.v;
+    var th = Math.min(Math.max(st.therm, 0), tot);
+
+    // Numerisk integrasjon drifter noen prosent. Termisk energi er den autoritative
+    // akkumulatoren; potensiell og kinetisk skaleres slik at summen alltid er nøyaktig
+    // lik totalen, med forholdet mellom dem bevart. Uten dette krymper stolpen synlig
+    // underveis, og det er nettopp det modellen skal vise at ikke skjer.
+    var mek = tot - th;
+    var mekNa = pot + kin;
+    if (mekNa > 1e-9) { var f = mek / mekNa; pot *= f; kin *= f; }
+    else { pot = 0; kin = 0; }
+
+    function pct(x) { return tot > 0 ? (x / tot) * 100 : 0; }
+    el.segPot.style.width = pct(pot) + "%";
+    el.segKin.style.width = pct(kin) + "%";
+    el.segTherm.style.width = pct(th) + "%";
+
+    el.lblPot.textContent = pct(pot) > 13 ? "Potensiell" : "";
+    el.lblKin.textContent = pct(kin) > 13 ? "Kinetisk" : "";
+    el.lblTherm.textContent = pct(th) > 13 ? "Termisk" : "";
+
+    el.numPot.textContent = pot.toFixed(1);
+    el.numKin.textContent = kin.toFixed(1);
+    el.numTherm.textContent = th.toFixed(1);
+    el.numTot.textContent = tot.toFixed(1);
+  }
+
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  function draw() {
+    var W = cv.width, H = cv.height;
+    var pad = 90, floorY = H - 110, topY = 70;
+    var maxH = 3.2;
+    var yPx = function (metres) { return floorY - (metres / maxH) * (floorY - topY); };
+
+    ctx.clearRect(0, 0, W, H);
+
+    // bakke
+    ctx.strokeStyle = css("--line"); ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(pad - 30, floorY); ctx.lineTo(W - pad + 30, floorY); ctx.stroke();
+
+    // høydeakse
+    ctx.strokeStyle = css("--line"); ctx.lineWidth = 1.5;
+    ctx.fillStyle = css("--ink-faint");
+    ctx.font = "26px ui-monospace, monospace"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (var mtr = 0; mtr <= 3; mtr++) {
+      var yy = yPx(mtr);
+      ctx.setLineDash([5, 9]);
+      ctx.beginPath(); ctx.moveTo(pad, yy); ctx.lineTo(W - pad, yy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillText(mtr + " m", pad - 16, yy);
+    }
+
+    // tidligere toppunkter
+    ctx.setLineDash([4, 8]); ctx.lineWidth = 2;
+    ctx.strokeStyle = css("--therm");
+    for (var i = 0; i < st.peaks.length; i++) {
+      var py = yPx(st.peaks[i]);
+      ctx.globalAlpha = 0.20 + 0.5 * (i / Math.max(st.peaks.length - 1, 1));
+      ctx.beginPath(); ctx.moveTo(W / 2 - 190, py); ctx.lineTo(W / 2 + 190, py); ctx.stroke();
+    }
+    ctx.globalAlpha = 1; ctx.setLineDash([]);
+
+    // slipphøyde
+    ctx.strokeStyle = css("--pot"); ctx.lineWidth = 2.5; ctx.setLineDash([12, 8]);
+    ctx.beginPath(); ctx.moveTo(W / 2 - 230, yPx(h0())); ctx.lineTo(W / 2 + 230, yPx(h0())); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // ball — radius skalerer svakt med masse
+    var r = 30 + mass() * 12;
+    var bx = W / 2, by = yPx(st.y) - r;
+    var speed = Math.min(Math.abs(st.v) / 8, 1);
+
+    ctx.fillStyle = css("--ink"); ctx.globalAlpha = 0.10;
+    ctx.beginPath(); ctx.ellipse(bx, floorY + 6, r * 0.85, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    var grad = ctx.createLinearGradient(bx, by - r, bx, by + r);
+    grad.addColorStop(0, css("--kin")); grad.addColorStop(1, css("--pot"));
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill();
+
+    // fartspil
+    if (speed > 0.05) {
+      ctx.strokeStyle = css("--kin"); ctx.lineWidth = 5; ctx.globalAlpha = 0.5 + speed * 0.5;
+      var dir = st.v < 0 ? 1 : -1, L = 34 + speed * 78;
+      ctx.beginPath(); ctx.moveTo(bx + r + 34, by); ctx.lineTo(bx + r + 34, by + dir * L); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(bx + r + 34 - 13, by + dir * (L - 15));
+      ctx.lineTo(bx + r + 34, by + dir * L);
+      ctx.lineTo(bx + r + 34 + 13, by + dir * (L - 15));
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // fart-tall
+    ctx.fillStyle = css("--ink-soft"); ctx.font = "28px ui-monospace, monospace";
+    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("h = " + st.y.toFixed(2) + " m", pad + 12, topY - 46);
+    ctx.fillText("v = " + Math.abs(st.v).toFixed(2) + " m/s", pad + 300, topY - 46);
+  }
+
+  var last = 0;
+  function loop(ts) {
+    if (!last) last = ts;
+    var dt = Math.min((ts - last) / 1000, 0.05);
+    last = ts;
+    if (st.running) { for (var k = 0; k < 4; k++) step(dt / 4); }
+    draw(); readout();
+    requestAnimationFrame(loop);
+  }
+
+  el.h.addEventListener("input", function () { el.hv.textContent = h0().toFixed(2); if (!st.running) reset(); else readout(); });
+  el.m.addEventListener("input", function () { el.mv.textContent = mass().toFixed(2); if (!st.running) reset(); else readout(); });
+  el.e.addEventListener("input", function () {
+    el.ev.textContent = rest().toFixed(2);
+    el.ehint.textContent = rest() >= 0.995
+      ? "Ingen tap — mekanisk energi er bevart. Idealisert."
+      : "Litt energi blir termisk for hvert sprett.";
+    if (!st.running) reset(); else readout();
+  });
+
+  el.play.addEventListener("click", function () {
+    if (st.therm >= total() - 0.001) reset();
+    st.running = !st.running;
+    el.play.textContent = st.running ? "Pause" : "Fortsett";
+  });
+  el.reset.addEventListener("click", reset);
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

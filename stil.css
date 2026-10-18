@@ -1,0 +1,100 @@
+/* naturfag.klassetavla.no — felles stil for forside, temasider og filmsider.
+   Spill har egen stil (spill/nv.css) med mørk tavle som bakgrunn. */
+:root {
+  color-scheme: light;
+  --bg: #f5f4ee;
+  --surface: #ffffff;
+  --surface-2: #eceae1;
+  --ink: #1b2420;
+  --muted: #59645e;
+  --line: #d9d8cd;
+  --focus: #b8620a;
+  /* temafarger, én per tema */
+  --t-energi: #a85708;
+  --t-stoffer: #1d66a3;
+  --t-kropp: #ad3352;
+  --t-jorda: #6447b8;
+  --t-liv: #2e7531;
+  --t-teknologi: #7d6300;
+  --t-praksis: #0a7266;
+  --t-laerer: #8f531a;
+  --f-body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --f-mark: 'Caveat Brush', 'Segoe Print', cursive;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121a17; --surface: #1a2521; --surface-2: #22302b; --ink: #eceee6; --muted: #a5b0a9; --line: #2e3c36; --focus: #ffb454;
+    --t-energi: #ffb454; --t-stoffer: #7cc8ff; --t-kropp: #ff8fa6; --t-jorda: #c4a6ff;
+    --t-liv: #93df84; --t-teknologi: #ffe166; --t-praksis: #63e0cf; --t-laerer: #ffd3a3;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121a17; --surface: #1a2521; --surface-2: #22302b; --ink: #eceee6; --muted: #a5b0a9; --line: #2e3c36; --focus: #ffb454;
+  --t-energi: #ffb454; --t-stoffer: #7cc8ff; --t-kropp: #ff8fa6; --t-jorda: #c4a6ff;
+  --t-liv: #93df84; --t-teknologi: #ffe166; --t-praksis: #63e0cf; --t-laerer: #ffd3a3;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--f-body); }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { line-height: 1.15; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+
+.side { max-width: 1040px; margin: 0 auto; padding: 20px 16px 64px; display: flex; flex-direction: column; gap: 36px; }
+.topp { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.merke { font: 400 34px/1 var(--f-mark); text-decoration: none; }
+.merke span { color: var(--muted); font-size: 22px; }
+.tilbake { font-weight: 700; text-decoration: none; color: var(--muted); min-height: 44px; display: inline-flex; align-items: center; }
+.tilbake:hover { color: var(--ink); }
+.etikett { font: 600 12px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* Forside */
+.helt h1 { font-size: clamp(32px, 6vw, 52px); font-weight: 700; letter-spacing: -.01em; }
+.helt p { margin-top: 12px; max-width: 60ch; color: var(--muted); font-size: 18px; }
+.rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.blokk { display: flex; flex-direction: column; gap: 14px; }
+.blokk > h2 { font-size: 22px; }
+
+.temakort { display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px; background: var(--surface); border: 1px solid var(--line); border-top: 5px solid var(--tc); border-radius: 12px; text-decoration: none; transition: transform .12s ease, box-shadow .12s ease; }
+.temakort:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -14px rgba(0,0,0,.35); }
+.temakort h3 { font-size: 24px; color: var(--tc); }
+.temakort ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.temakort li { padding-left: 14px; position: relative; }
+.temakort li::before { content: ''; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--tc); }
+.temakort .ingress { color: var(--muted); }
+.temakort .telling { margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--line); }
+
+/* Temaside */
+.temahode { display: flex; flex-direction: column; gap: 10px; padding-left: 16px; border-left: 6px solid var(--tc); }
+.temahode h1 { font-size: clamp(34px, 6vw, 54px); color: var(--tc); }
+.temahode .sp { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.temahode .sp p { font-size: clamp(19px, 2.6vw, 24px); font-weight: 700; }
+.temahode .ingress { color: var(--muted); max-width: 60ch; }
+
+.filter { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filter button { font: 700 15px var(--f-body); min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.filter button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.kort { display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--tc); border-radius: 10px; text-decoration: none; min-width: 0; }
+.kort:hover { border-color: var(--tc); }
+.kort h3 { font-size: 19px; }
+.kort .tekst { color: var(--muted); font-size: 16px; }
+.kort .meta { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-top: 4px; }
+.chip { font: 600 12px/1 var(--f-mono); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.elev { color: var(--t-praksis); border-color: currentColor; }
+.chip.laerer { color: var(--t-laerer); border-color: currentColor; }
+.chip.ekstern::after { content: ' ↗'; }
+.tom { color: var(--muted); }
+
+/* Filmside */
+.film video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; display: block; }
+.film .tekst { color: var(--muted); max-width: 64ch; margin-top: 12px; }
+
+.fot { border-top: 1px solid var(--line); padding-top: 16px; font-size: 15px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
