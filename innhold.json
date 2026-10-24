@@ -120,6 +120,18 @@
       "tekst": "Partikkelboks og oppvarmingskurve side om side. Hvor tar energien veien når termometeret står stille?"
     },
     {
+      "tittel": "Naturens byggeklosser",
+      "tema": "stoffer",
+      "type": "film",
+      "fil": "film/naturens-byggeklosser.mp4",
+      "side": "naturens-byggeklosser",
+      "minutter": 2,
+      "malgruppe": [
+        "elev"
+      ],
+      "tekst": "Fra Demokrits «atomos» og Aristoteles’ fire elementer til Dalton og atomet med protoner, nøytroner og elektroner. Antall protoner avgjør hvilket grunnstoff atomet er."
+    },
+    {
       "tittel": "Når atomer holder sammen",
       "tema": "stoffer",
       "type": "film",
